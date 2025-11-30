@@ -19,6 +19,8 @@ cout << "dx = " << double(dx[1]) << endl;
   
 Free(dx);
 ```
+new/delete would be nicer?
+
 
 
 ## Vectors and matrices
@@ -34,4 +36,13 @@ Vector<Dev<double>> devx(x), devy(y);
 
 // expression templates on device
 devx += 3*devy;
+```
+
+by now we have assignment, for VectorView
+
+
+Matrix multiplication calls cublas:
+```cpp
+Matrix<Dev<double>> a, b, c;
+c = a*b;
 ```
