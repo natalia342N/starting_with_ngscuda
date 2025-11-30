@@ -17,7 +17,7 @@ int main()
   
   vy.Range(0,10) = 4.*vx - vx;
   vy.D2H (y);
-  
+
   cout << "y = " << y << endl;
 }
 

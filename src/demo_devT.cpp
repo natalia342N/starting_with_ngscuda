@@ -15,7 +15,7 @@ int main()
   dx->H2D(3.8);
   cout << "dx = " << dx->D2H() << endl;
   
-  // with asignment and conversion:
+  // with assignment and conversion:
   dx[1] = 4.2;
   cout << "dx = " << double(dx[1]) << endl;
   
