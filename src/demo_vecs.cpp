@@ -10,12 +10,13 @@ int main()
 {
   Vector<double> x(10), y(10);
   for (int i = 0; i < x.Size(); i++) x(i) = 10+i;
+  for (int i = 0; i < x.Size(); i++) y(i) = i;  
   
-  Vector<Dev<double>> vx(x), vy(10);
+  Vector<Dev<double>> vx(x), vy(y);
     
   cout << "x = " << x << endl;
   
-  vy.Range(0,10) = 4.*vx - vx;
+  vy += 4.*vx;
   vy.D2H (y);
 
   cout << "y = " << y << endl;
