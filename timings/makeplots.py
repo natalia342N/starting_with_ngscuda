@@ -1,14 +1,25 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-data = np.loadtxt('timing_copyvec.txt', usecols=(0, 1))
+data_copy = np.loadtxt('timing_copyvec.txt', usecols=(0, 1))
+data_daxpy = np.loadtxt('timing_daxpy.txt', usecols=(0, 1))
 
 
 
-sizes, GFlops = zip(*data)
+
+
 
 plt.figure(figsize=(8,6))
-plt.plot(sizes, GFlops, marker='o', linestyle='-', color='b', label='copy')
+
+sizes, GFlops = zip(*data_copy)
+# plt.plot(sizes, GFlops, marker='o', linestyle='-', color='b', label='copy')
+plt.plot(sizes, GFlops, "-x", label='copy')
+
+sizes, GFlops = zip(*data_daxpy)
+# plt.plot(sizes, GFlops, marker='o', linestyle='-', color='b', label='daxpy')
+plt.plot(sizes, GFlops, "-x", label='daxpy')
+
+
 
 plt.xscale('log') # , base=2)
 plt.yscale('log')

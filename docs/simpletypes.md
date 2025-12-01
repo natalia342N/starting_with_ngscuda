@@ -15,5 +15,24 @@ cout << "dx = " << double(dx[1]) << endl;
   
 Free(dx);
 ```
-new/delete would be nicer?
+
+To avoid  accidentally creating an `Dev<T>` object on the host, it has deleted default constructor.
+This disallows also creation via new/delete.
+
+
+## A parallel loop on the device
+
+```cpp
+size_t n = 100;
+auto dev_array = Dev<int>::Malloc(n);
+    
+DeviceParallelFor(n, [dev_array] DEVICE_LAMBDA (size_t tid) {
+    dev_array[tid] = 2*tid;
+});
+
+cout << "array[5] = " << dev_array[5] << endl;
+
+Free (dev_array);
+```
+
 
