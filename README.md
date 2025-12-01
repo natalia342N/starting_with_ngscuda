@@ -6,64 +6,20 @@
 
 
 
+Some simple use-cases:
 
 
-
-## Creating variables on the device
-
-from `demo_devT.cpp`
-```cpp
-// allocate on device memory
-Dev<double> * dx = Dev<double>::Malloc(2);
-
-// transfer with explicit H2D / D2H calls:
-dx->H2D(3.8);
-cout << "dx = " << dx->D2H() << endl;
-  
-// or with assignment and conversion:
-dx[1] = 4.2;
-cout << "dx = " << double(dx[1]) << endl;
-  
-Free(dx);
-```
-new/delete would be nicer?
-
-
-
-## Vectors and matrices
-
-`demo_vecs.cpp`
 
 ```cpp
-Vector<double> x(n), y(n);
-x = 1; y = 2;
+size_t n = 100;
+auto dev_array = Dev<int>::Malloc(n);
+    
+DeviceParallelFor(n, [dev_array] DEVICE_LAMBDA (size_t tid) {
+    dev_array[tid] = 2*tid;
+});
 
-// init from host vectors:
-Vector<Dev<double>> devx(x), devy(y);
+cout << "array[5] = " << dev_array[5] << endl;
 
-// expression templates on device
-devx += 3*devy;
-
-devx.D2H(x);
+Free (dev_array);
 ```
-
-
-
-by now we have assignment, for VectorView
-
-
-Matrix multiplication calls cublas:
-```cpp
-Matrix<Dev<double>> a, b, c;
-c = a*b;
-```
-
-
-
-## Timings
-
-`x += alpha * y`
-
-
-`A = B*C` (using cublas)
 
