@@ -1,5 +1,6 @@
 // ngs_nvcc -x cu -c  timings.cpp ; ngs_nvcc -dlink timings.o -o timings_device.o -L/opt/cuda/lib64 -L/home/jschoeberl/local_install/lib -lngcore ;  ngsld timings.o timings_device.o  -L/opt/cuda/lib64 -lcudart -lcudadevrt -lngcore
 
+#include <fstream>
 #include <ngstd.hpp>
 #include <cuda_ngbla.hpp>
 
@@ -8,6 +9,7 @@ using namespace ngbla;
 
 int main()
 {
+  ofstream copyvec("timing_copyvec.txt");
   for (int n = 1024; n <= 256*1024*1024; n*=2)
     {
       Vector<double> x(n), y(n);
@@ -28,5 +30,6 @@ int main()
       t.Stop();
       t.AddFlops (double(runs)*n);
       cout << "n = " << n << ", GFlops = " << t.GetMFlops()*1e-3 << endl;
+      copyvec << n << " " << t.GetMFlops()*1e-3  << endl;
     }
 }
