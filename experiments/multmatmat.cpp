@@ -1,5 +1,21 @@
 // ngs_nvcc -x cu -c  multmatmat.cpp ; ngs_nvcc -dlink multmatmat.o -o multmatmat_device.o -L/opt/cuda/lib64 -L/home/jschoeberl/local_install/lib -lngcore -lngscudalib;  ngsld multmatmat.o multmatmat_device.o  -L/opt/cuda/lib64 -L/home/jschoeberl/local_install/lib -lcudart -lcudadevrt -lcublas -lculibos -lngcore -lngscudalib
 
+// rm -f multmatmat.o multmatmat_device.o multmatmat
+
+// ngs_nvcc -x cu -c multmatmat.cpp
+
+// ngs_nvcc -dlink multmatmat.o -o multmatmat_device.o \
+//    -L/usr/local/cuda/lib64 \
+//    -lngcore
+
+// ngsld multmatmat.o multmatmat_device.o \
+//    -o multmatmat \
+//    -L/usr/local/cuda/lib64 \
+//    -lcudart -lcudadevrt -lcublas \
+//    -lngcore
+
+// ./multmatmat 
+
 #include <fstream>
 #include <ngstd.hpp>
 #include <cuda_ngbla.hpp>
