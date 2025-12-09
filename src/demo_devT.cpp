@@ -1,5 +1,18 @@
 // ngs_nvcc -x cu -c  demo_devT.cpp ; ngs_nvcc -dlink demo_devT.o -o demo_devT_device.o -L/opt/cuda/lib64 -L/home/jschoeberl/local_install/lib -lngcore ;  ngsld demo_devT.o demo_devT_device.o  -L/opt/cuda/lib64 -lcudart -lcudadevrt -lngcore
 
+
+// rm -f demo_devT.o demo_devT_device.o demo_devT
+// ngs_nvcc -x cu -c demo_devT.cpp
+// ngs_nvcc -dlink demo_devT.o -o demo_devT_device.o \
+//     -L/usr/local/cuda/lib64 \
+//     -lngcore
+// ngsld demo_devT.o demo_devT_device.o \
+//     -o demo_devT \
+//     -L/usr/local/cuda/lib64 \
+//     -lcudart -lcudadevrt \
+//     -lngcore
+// ./demo_devT
+
 #include <cuda_ngbla.hpp>
 
 using namespace ngs_cuda;
