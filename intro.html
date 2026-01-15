@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Starting with ngscuda C++ programming &#8212; NGSolve on Device</title>
+    <title>Reducing GPU kernel launch overhead in NGSolve using CUDA Graphs &#8212; NGSolve on Device</title>
   
   
   
@@ -154,8 +154,8 @@
       
     
     
-    <img src="_static/NGSlogo.png" class="logo__image only-light" alt="NGSolve on Device - Home"/>
-    <script>document.write(`<img src="_static/NGSlogo.png" class="logo__image only-dark" alt="NGSolve on Device - Home"/>`);</script>
+    <img src="_static/TU_CSE_NGS.png" class="logo__image only-light" alt="NGSolve on Device - Home"/>
+    <script>document.write(`<img src="_static/TU_CSE_NGS.png" class="logo__image only-dark" alt="NGSolve on Device - Home"/>`);</script>
   
   
 </a></div>
@@ -176,7 +176,7 @@
         <ul class="nav bd-sidenav bd-sidenav__home-link">
             <li class="toctree-l1 current active">
                 <a class="reference internal" href="#">
-                    Starting with ngscuda C++ programming
+                    Reducing GPU kernel launch overhead in NGSolve using CUDA Graphs
                 </a>
             </li>
         </ul>
@@ -338,7 +338,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Starting with ngscuda C++ programming</h1>
+    <h1>Reducing GPU kernel launch overhead in NGSolve using CUDA Graphs</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -348,10 +348,11 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Starting with ngscuda C++ programming</a></li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#ngsolve-with-cuda">NGSolve with Cuda</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#ngscuda-on-supercomputer">NGSCuda on Supercomputer</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#idea">Idea</a></li>
 </ul>
-
+</li>
+</ul>
             </nav>
         </div>
     </div>
@@ -362,11 +363,20 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="starting-with-ngscuda-c-programming">
-<h1>Starting with ngscuda C++ programming<a class="headerlink" href="#starting-with-ngscuda-c-programming" title="Link to this heading">#</a></h1>
+  <section class="tex2jax_ignore mathjax_ignore" id="reducing-gpu-kernel-launch-overhead-in-ngsolve-using-cuda-graphs">
+<h1>Reducing GPU kernel launch overhead in NGSolve using CUDA Graphs<a class="headerlink" href="#reducing-gpu-kernel-launch-overhead-in-ngsolve-using-cuda-graphs" title="Link to this heading">#</a></h1>
+<section id="ngscuda-on-supercomputer">
+<h2>NGSCuda on Supercomputer<a class="headerlink" href="#ngscuda-on-supercomputer" title="Link to this heading">#</a></h2>
+<section id="idea">
+<h3>Idea<a class="headerlink" href="#idea" title="Link to this heading">#</a></h3>
+<p>NGSolve already supports GPU execution via ngscuda, but for matrix-free operators (like the convection operator) performance can be limited by kernel launch and synchronization overhead, especially when the same operator is applied repeatedly.</p>
+<p>CUDA Graphs offer a way to:</p>
+<ul class="simple">
+<li><p>capture a fixed sequence of GPU operations once,</p></li>
+<li><p>replay it efficiently many times with lower CPU overhead.</p></li>
+</ul>
 </section>
-<section class="tex2jax_ignore mathjax_ignore" id="ngsolve-with-cuda">
-<h1>NGSolve with Cuda<a class="headerlink" href="#ngsolve-with-cuda" title="Link to this heading">#</a></h1>
+</section>
 <div class="toctree-wrapper compound">
 </div>
 </section>
@@ -426,10 +436,11 @@ document.write(`
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Starting with ngscuda C++ programming</a></li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#ngsolve-with-cuda">NGSolve with Cuda</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#ngscuda-on-supercomputer">NGSCuda on Supercomputer</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#idea">Idea</a></li>
 </ul>
-
+</li>
+</ul>
   </nav></div>
 
 </div></div>
