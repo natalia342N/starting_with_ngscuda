@@ -61,7 +61,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="hello NGSolve project" href="project.html" />
-    <link rel="prev" title="BLA on the device" href="ngbla.html" />
+    <link rel="prev" title="Graph Capture with NGSCuda on the device" href="test_graph_capture.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -180,8 +180,8 @@
             </li>
         </ul>
         <ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="simpletypes.html">Creating variables on the device</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ngbla.html">BLA on the device</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">NGSolve on Device with NGSCuda</a></li>
+<li class="toctree-l1"><a class="reference internal" href="test_graph_capture.html">Graph Capture with NGSCuda on the device</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Timings</a></li>
 <li class="toctree-l1"><a class="reference internal" href="project.html">hello NGSolve project</a></li>
 </ul>
@@ -361,13 +361,14 @@ document.write(`
                   
   <section class="tex2jax_ignore mathjax_ignore" id="timings">
 <h1>Timings<a class="headerlink" href="#timings" title="Link to this heading">#</a></h1>
-<p>All timings have been measured on an NVIDIA GeForce RTX 5090.</p>
 <section id="id1">
 <h2>Timings<a class="headerlink" href="#id1" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">y</span> <span class="pre">=</span> <span class="pre">alpha</span> <span class="pre">*</span> <span class="pre">x</span></code></p>
-<a class="reference internal image-reference" href="_images/timing_copyvec.png"><img alt="_images/timing_copyvec.png" class="align-center" src="_images/timing_copyvec.png" style="width: 40%;" />
+<p>A100</p>
+<a class="reference internal image-reference" href="pictures/timing_matmat_all_A100.png"><img alt="pictures/timing_matmat_all_A100.png" class="align-center" src="pictures/timing_matmat_all_A100.png" style="width: 40%;" />
 </a>
-<p><code class="docutils literal notranslate"><span class="pre">A</span> <span class="pre">=</span> <span class="pre">B*C</span></code> (using cublas)</p>
+<p>Musica</p>
+<a class="reference internal image-reference" href="_images/timing_matmat_benchmark_musica.png"><img alt="_images/timing_matmat_benchmark_musica.png" class="align-center" src="_images/timing_matmat_benchmark_musica.png" style="width: 40%;" />
+</a>
 </section>
 </section>
 
@@ -402,12 +403,12 @@ document.write(`
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="ngbla.html"
+       href="test_graph_capture.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">BLA on the device</p>
+        <p class="prev-next-title">Graph Capture with NGSCuda on the device</p>
       </div>
     </a>
     <a class="right-next"
