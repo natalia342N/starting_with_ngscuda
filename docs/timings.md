@@ -1,12 +1,8 @@
 # Timings
 
+VSC5 A100 
 
-
-## Timings
-
-A100
-
-```{image} pictures/timing_matmat_all_A100.png
+```{image} pictures/timings_matmat_all_A100.png
 :width: 40%
 :align: center
 ```
