@@ -2,7 +2,8 @@
 
 
 
-[Documentation](https://ngsolve.github.io/starting_with_ngscuda/intro.html)
+[Documentation](https://natalia342n.github.io/starting_with_ngscuda/)
+
 
 
 
