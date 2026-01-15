@@ -2,9 +2,9 @@
 # Learn more at https://jupyterbook.org/customize/config.html
 
 title: NGSolve on Device
-author: J. Schöberl
-logo: pictures/NGSlogo.png
-copyright : "2025"  # Copyright year to be placed in the footer
+author: J. Schöberl 
+logo: pictures/TU_CSE_NGS.png
+copyright : "2026"  # Copyright year to be placed in the footer
 
 
 # Force re-execution of notebooks on each build.

@@ -1,17 +1,19 @@
 # Timings
 
-All timings have been measured on an NVIDIA GeForce RTX 5090.
 
 
 ## Timings
 
-`y = alpha * x`
+A100
 
-```{image} pictures/timing_copyvec.png
+```{image} pictures/timing_matmat_all_A100.png
 :width: 40%
 :align: center
 ```
 
+Musica
 
-`A = B*C` (using cublas)
-
+```{image} pictures/timing_matmat_benchmark_musica.png
+:width: 40%
+:align: center
+```
