@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Graph Capture with NGSCuda on the device &#8212; NGSolve on Device</title>
+    <title>Graph Capture with NGSCuda &#8212; NGSolve on Device</title>
   
   
   
@@ -181,9 +181,9 @@
         </ul>
         <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">NGSolve on Device with NGSCuda</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Graph Capture with NGSCuda on the device</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Graph Capture with NGSCuda</a></li>
 <li class="toctree-l1"><a class="reference internal" href="timings.html">Timings</a></li>
-<li class="toctree-l1"><a class="reference internal" href="project.html">hello NGSolve project</a></li>
+<li class="toctree-l1"><a class="reference internal" href="project.html">TFQMR Solver on Device</a></li>
 </ul>
 
     </div>
@@ -324,7 +324,9 @@ document.write(`
   </button>
 `);
 </script>
-
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
 </div></div>
       
     </div>
@@ -335,11 +337,20 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Graph Capture with NGSCuda on the device</h1>
+    <h1>Graph Capture with NGSCuda</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
             
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#basic-example">Basic Example</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#stream-routing">Stream Routing</a></li>
+</ul>
+            </nav>
         </div>
     </div>
 </div>
@@ -349,139 +360,44 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="graph-capture-with-ngscuda-on-the-device">
-<h1>Graph Capture with NGSCuda on the device<a class="headerlink" href="#graph-capture-with-ngscuda-on-the-device" title="Link to this heading">#</a></h1>
-<p>In the same folder where NGSolve with NGSCuda is installed, create a script <code class="docutils literal notranslate"><span class="pre">test_graph_capture.py</span></code> with the following content:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span><span class="o">,</span><span class="w"> </span><span class="nn">os</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">time</span><span class="w"> </span><span class="kn">import</span> <span class="n">time</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Python:&quot;</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Executable:&quot;</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;CUDA_VISIBLE_DEVICES:&quot;</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;CUDA_VISIBLE_DEVICES&quot;</span><span class="p">))</span>
-
-<span class="kn">import</span><span class="w"> </span><span class="nn">ngsolve</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">ngsolve.ngscuda</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ngscuda</span>
+  <section class="tex2jax_ignore mathjax_ignore" id="graph-capture-with-ngscuda">
+<h1>Graph Capture with NGSCuda<a class="headerlink" href="#graph-capture-with-ngscuda" title="Link to this heading">#</a></h1>
+<p>CUDA Graphs allow capturing a sequence of GPU operations once and replaying them with lower overhead. This is useful when the same kernel sequence is executed many times, as in Krylov solvers.</p>
+<section id="basic-example">
+<h2>Basic Example<a class="headerlink" href="#basic-example" title="Link to this heading">#</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">ngsolve.ngscuda</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ngscuda</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">ngsolve</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseVector</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ngsolve:&quot;</span><span class="p">,</span> <span class="n">ngsolve</span><span class="o">.</span><span class="vm">__file__</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ngscuda:&quot;</span><span class="p">,</span> <span class="n">ngscuda</span><span class="o">.</span><span class="vm">__file__</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Has CudaGraph:&quot;</span><span class="p">,</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">ngscuda</span><span class="p">,</span> <span class="s2">&quot;CudaGraph&quot;</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Imports OK&quot;</span><span class="p">)</span>
-
-<span class="c1"># Create a vector on host</span>
 <span class="n">n</span> <span class="o">=</span> <span class="mi">1_000_000</span>
 <span class="n">v</span> <span class="o">=</span> <span class="n">BaseVector</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
 <span class="n">v</span><span class="p">[:]</span> <span class="o">=</span> <span class="mf">1.0</span>
-
-<span class="c1"># Move to device</span>
 <span class="n">dv</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">CreateDeviceVector</span><span class="p">(</span><span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-<span class="c1"># Warm-up execution</span>
+<span class="c1"># Warm-up</span>
 <span class="n">dv</span> <span class="o">*=</span> <span class="mf">1.000001</span>
 
-<span class="c1"># Sync before capture/timing if available</span>
-<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">ngscuda</span><span class="p">,</span> <span class="s2">&quot;DeviceSynchronize&quot;</span><span class="p">):</span>
-    <span class="n">ngscuda</span><span class="o">.</span><span class="n">DeviceSynchronize</span><span class="p">()</span>
-<span class="k">else</span><span class="p">:</span>
-    <span class="n">_</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">dv</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-
-<span class="c1"># Capture + instantiate graph</span>
+<span class="c1"># Capture</span>
 <span class="n">g</span> <span class="o">=</span> <span class="n">ngscuda</span><span class="o">.</span><span class="n">CudaGraph</span><span class="p">()</span>
 <span class="n">g</span><span class="o">.</span><span class="n">BeginCapture</span><span class="p">()</span>
-<span class="n">dv</span> <span class="o">*=</span> <span class="mf">1.000001</span>      <span class="c1"># should be captured</span>
+<span class="n">dv</span> <span class="o">*=</span> <span class="mf">1.000001</span>
 <span class="n">g</span><span class="o">.</span><span class="n">EndCapture</span><span class="p">()</span>
 
-<span class="c1"># Timing</span>
-<span class="n">runs</span> <span class="o">=</span> <span class="mi">1000</span>
-
-<span class="c1"># Sync before timing</span>
-<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">ngscuda</span><span class="p">,</span> <span class="s2">&quot;DeviceSynchronize&quot;</span><span class="p">):</span>
-    <span class="n">ngscuda</span><span class="o">.</span><span class="n">DeviceSynchronize</span><span class="p">()</span>
-<span class="k">else</span><span class="p">:</span>
-    <span class="n">_</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">dv</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-
-<span class="n">ts</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
-<span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">runs</span><span class="p">):</span>
+<span class="c1"># Replay 1000 times</span>
+<span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1000</span><span class="p">):</span>
     <span class="n">g</span><span class="o">.</span><span class="n">Launch</span><span class="p">()</span>
 
-<span class="c1"># Sync after launches </span>
-<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">ngscuda</span><span class="p">,</span> <span class="s2">&quot;DeviceSynchronize&quot;</span><span class="p">):</span>
-    <span class="n">ngscuda</span><span class="o">.</span><span class="n">DeviceSynchronize</span><span class="p">()</span>
-<span class="k">else</span><span class="p">:</span>
-    <span class="n">_</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">dv</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-<span class="n">te</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Graph replay time per launch (s):&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">te</span> <span class="o">-</span> <span class="n">ts</span><span class="p">)</span> <span class="o">/</span> <span class="n">runs</span><span class="p">)</span>
-
-<span class="c1"># Correctness check </span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;dv[0] (after replays):&quot;</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">dv</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
-
+<span class="c1"># Correctness: 1.000001^1000 ≈ 1.001001</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;dv[0]:&quot;</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">dv</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
 </pre></div>
 </div>
-<p>i dont think this yet passes the correctness check..</p>
-<p>but to run the script use:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/bin/bash</span>
-<span class="c1">#SBATCH --job-name=ngscuda_graph</span>
-<span class="c1">#SBATCH --gres=gpu:1</span>
-<span class="c1">#SBATCH -p zen4_0768_h100x4</span>
-<span class="c1">#SBATCH --qos=zen4_0768_h100x4</span>
-<span class="c1">#SBATCH --threads-per-core=1</span>
-<span class="c1">#SBATCH --time=00:20:00</span>
-<span class="c1">#SBATCH --output=%x-%j.out</span>
-<span class="c1">#SBATCH --error=%x-%j.err</span>
-
-<span class="nb">set</span><span class="w"> </span>-euo<span class="w"> </span>pipefail
-
-ml<span class="w"> </span>--force<span class="w"> </span>purge
-ml<span class="w"> </span>load<span class="w"> </span>ASC/2023.06
-ml<span class="w"> </span>load<span class="w"> </span>buildenv/default-foss-2023a
-ml<span class="w"> </span>load<span class="w"> </span>CMake/3.26.3-GCCcore-12.3.0
-ml<span class="w"> </span>load<span class="w"> </span>CUDA/12.9.0
-ml<span class="w"> </span>load<span class="w"> </span>SciPy-bundle/2023.07-gfbf-2023a
-ml<span class="w"> </span>load<span class="w"> </span>occt/7.8.0-GCCcore-12.3.0
-ml<span class="w"> </span>unload<span class="w"> </span>pybind11/2.11.1-GCCcore-12.3.0<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">true</span>
-
-<span class="c1"># Paths</span>
-<span class="nv">WORKING_DIR</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">SLURM_SUBMIT_DIR</span><span class="k">:-</span><span class="nv">$PWD</span><span class="si">}</span><span class="s2">&quot;</span>
-<span class="nv">VENV</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$WORKING_DIR</span><span class="s2">/ngs&quot;</span>
-<span class="nv">PREFIX</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$WORKING_DIR</span><span class="s2">/install&quot;</span>
-
-<span class="nb">source</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$VENV</span><span class="s2">/bin/activate&quot;</span>
-
-<span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONNOUSERSITE</span><span class="o">=</span><span class="m">1</span>
-<span class="nb">unset</span><span class="w"> </span>PYTHONPATH<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">true</span>
-
-<span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">EBROOTCUDA</span><span class="k">:-</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-d<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$EBROOTCUDA</span><span class="s2">/lib64&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
-<span class="w">  </span><span class="nb">export</span><span class="w"> </span><span class="nv">LD_LIBRARY_PATH</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$EBROOTCUDA</span><span class="s2">/lib64:</span><span class="si">${</span><span class="nv">LD_LIBRARY_PATH</span><span class="k">:-</span><span class="si">}</span><span class="s2">&quot;</span>
-<span class="k">fi</span>
-
-<span class="nv">PYDIR</span><span class="o">=</span><span class="k">$(</span>find<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$PREFIX</span><span class="s2">&quot;</span><span class="w"> </span>-maxdepth<span class="w"> </span><span class="m">6</span><span class="w"> </span>-type<span class="w"> </span>d<span class="w"> </span><span class="se">\(</span><span class="w"> </span>-name<span class="w"> </span>site-packages<span class="w"> </span>-o<span class="w"> </span>-name<span class="w"> </span>dist-packages<span class="w"> </span><span class="se">\)</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-n<span class="w"> </span><span class="m">1</span><span class="k">)</span>
-<span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$PYDIR</span><span class="s2">:</span><span class="si">${</span><span class="nv">PYTHONPATH</span><span class="k">:-</span><span class="si">}</span><span class="s2">&quot;</span>
-<span class="nb">export</span><span class="w"> </span><span class="nv">PATH</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$PREFIX</span><span class="s2">/bin:</span><span class="nv">$PATH</span><span class="s2">&quot;</span>
-
-
-which<span class="w"> </span>python
-python<span class="w"> </span>-V
-nvidia-smi
-<span class="nb">echo</span>
-
-<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Job started at </span><span class="k">$(</span>date<span class="k">)</span><span class="s2">&quot;</span>
-<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Running on host </span><span class="k">$(</span>hostname<span class="k">)</span><span class="s2">&quot;</span>
-<span class="nb">echo</span>
-
-python<span class="w"> </span>test_graph_capture.py
-
-<span class="nb">echo</span>
-python<span class="w"> </span>-<span class="w"> </span><span class="s">&lt;&lt;&#39;PY&#39;</span>
-<span class="s">import ngsolve, ngsolve.ngscuda as ngscuda</span>
-<span class="s">print(&quot;NGSolve version:&quot;, getattr(ngsolve, &quot;__version__&quot;, &quot;unknown&quot;))</span>
-<span class="s">print(&quot;Has CudaGraph:&quot;, hasattr(ngscuda, &quot;CudaGraph&quot;))</span>
-<span class="s">PY</span>
-
-<span class="nb">echo</span>
-<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Job finished at </span><span class="k">$(</span>date<span class="k">)</span><span class="s2">&quot;</span>
-</pre></div>
-</div>
+<p>Submit via <code class="docutils literal notranslate"><span class="pre">sbatch</span></code> on a GPU node — see <code class="docutils literal notranslate"><span class="pre">installation.md</span></code> for the job script template.</p>
+</section>
+<section id="stream-routing">
+<h2>Stream Routing<a class="headerlink" href="#stream-routing" title="Link to this heading">#</a></h2>
+<p>For a kernel to be recorded into a graph, it must be submitted on the <strong>capture stream</strong> — the stream passed to <code class="docutils literal notranslate"><span class="pre">cudaStreamBeginCapture</span></code>.</p>
+<p>In NGSolve, all GPU work runs on <code class="docutils literal notranslate"><span class="pre">ngs_cuda_stream</span></code>. <code class="docutils literal notranslate"><span class="pre">CudaGraph::BeginCapture()</span></code> redirects this global stream to the capture stream, so raw CUDA kernels (such as the block-Jacobi preconditioner) are captured automatically.</p>
+<!-- Library calls such as `cusparseSpMV` use a separate handle with its own stream assignment and require explicit `cusparseSetStream` to participate in capture. -->
+</section>
 </section>
 
     <script type="text/x-thebe-config">
@@ -538,6 +454,22 @@ python<span class="w"> </span>-<span class="w"> </span><span class="s">&lt;&lt;&
             </div>
             
             
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#basic-example">Basic Example</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#stream-routing">Stream Routing</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
               
             
           </div>
