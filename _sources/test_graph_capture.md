@@ -1,4 +1,4 @@
-# Graph Capture with NGSCuda
+# OLD_Graph Capture with NGSCuda
 
 CUDA Graphs allow capturing a sequence of GPU operations once and replaying them with lower overhead. This is useful when the same kernel sequence is executed many times, as in Krylov solvers.
 

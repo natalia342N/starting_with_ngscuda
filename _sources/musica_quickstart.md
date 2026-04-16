@@ -1,4 +1,4 @@
-# Running DevCGSolver on Musica
+# NEW_Running DevCGSolver on Musica
 
 This page provides instructions for running the `DevCGSolver` 
 CUDA graph benchmark on the Musica cluster.
