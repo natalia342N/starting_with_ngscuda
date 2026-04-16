@@ -375,12 +375,61 @@ document.write(`
 CUDA graph benchmark on the Musica cluster.</p>
 <section id="step-1-build-and-install-ngsolve-with-ngscuda">
 <h2>Step 1 — Build and install NGSolve with NGSCuda<a class="headerlink" href="#step-1-build-and-install-ngsolve-with-ngscuda" title="Link to this heading">#</a></h2>
+<p>Create <code class="docutils literal notranslate"><span class="pre">build.sh</span></code> with the following content:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/bin/sh</span>
+<span class="nb">set</span><span class="w"> </span>-e
+
+ml<span class="w"> </span>--force<span class="w"> </span>purge
+ml<span class="w"> </span>load<span class="w"> </span>ASC/2023.06
+ml<span class="w"> </span>load<span class="w"> </span>buildenv/default-foss-2023a
+ml<span class="w"> </span>load<span class="w"> </span>CMake/3.26.3-GCCcore-12.3.0<span class="w"> </span>CUDA/12.9.0<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>SciPy-bundle/2023.07-gfbf-2023a<span class="w"> </span>occt/7.8.0-GCCcore-12.3.0
+ml<span class="w"> </span>unload<span class="w"> </span>pybind11/2.11.1-GCCcore-12.3.0<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">true</span>
+
+<span class="nv">WORKING_DIR</span><span class="o">=</span><span class="k">$(</span>realpath<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">PWD</span><span class="si">}</span><span class="s2">&quot;</span><span class="k">)</span>
+<span class="nv">VENV</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">WORKING_DIR</span><span class="si">}</span><span class="s2">/ngs&quot;</span>
+<span class="nv">SOURCES</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">WORKING_DIR</span><span class="si">}</span><span class="s2">/src/ngsolve&quot;</span>
+
+virtualenv<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">VENV</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="nb">source</span><span class="w"> </span><span class="si">${</span><span class="nv">VENV</span><span class="si">}</span>/bin/activate
+
+<span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>!<span class="w"> </span>-d<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">SOURCES</span><span class="si">}</span><span class="s2">/.git&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<span class="w">    </span>mkdir<span class="w"> </span>-p<span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>dirname<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">SOURCES</span><span class="si">}</span><span class="s2">&quot;</span><span class="k">)</span><span class="s2">&quot;</span>
+<span class="w">    </span>git<span class="w"> </span>clone<span class="w"> </span>--recurse-submodules<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>git@gitlab.tuwien.ac.at:ngsolve/ngsolve.git<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">SOURCES</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="k">fi</span>
+
+<span class="nv">BUILD_DIR</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">WORKING_DIR</span><span class="si">}</span><span class="s2">/build/ngsolve&quot;</span>
+rm<span class="w"> </span>-rf<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">BUILD_DIR</span><span class="si">}</span><span class="s2">&quot;</span>
+mkdir<span class="w"> </span>-p<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">BUILD_DIR</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="nb">cd</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">BUILD_DIR</span><span class="si">}</span><span class="s2">&quot;</span>
+
+cmake<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">SOURCES</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-DCMAKE_BUILD_TYPE<span class="o">=</span>Release<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-DUSE_SUPERBUILD<span class="o">=</span>ON<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-DUSE_OCC<span class="o">=</span>ON<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-DUSE_CCACHE<span class="o">=</span>ON<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-DCMAKE_INSTALL_PREFIX<span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">WORKING_DIR</span><span class="si">}</span><span class="s2">/install&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-DUSE_CUDA<span class="o">=</span>ON<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-DUSE_GUI<span class="o">=</span>OFF<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-DCMAKE_CUDA_ARCHITECTURES<span class="o">=</span><span class="s2">&quot;90&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-DUSE_UMFPACK<span class="o">=</span>OFF<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-DBUILD_STUB_FILES<span class="o">=</span>OFF
+
+make<span class="w"> </span>-j<span class="w"> </span><span class="m">8</span>
+make<span class="w"> </span>install
+
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;=== Build done ===&quot;</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Install prefix: </span><span class="si">${</span><span class="nv">WORKING_DIR</span><span class="si">}</span><span class="s2">/install&quot;</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Venv:           </span><span class="si">${</span><span class="nv">VENV</span><span class="si">}</span><span class="s2">&quot;</span>
+</pre></div>
+</div>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>rm<span class="w"> </span>-rf<span class="w"> </span>build<span class="w"> </span>install<span class="w"> </span>ngs
 bash<span class="w"> </span>build.sh
 </pre></div>
 </div>
-<p>This takes approximately 30 minutes. After completion:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">source</span><span class="w"> </span>~ngs/bin/activate
+<p>This takes approximately 20-30 minutes on a login node. After completion:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">source</span><span class="w"> </span>~/ngs/bin/activate
 pip<span class="w"> </span>install<span class="w"> </span>numpy<span class="w"> </span>scipy<span class="w"> </span>matplotlib
 </pre></div>
 </div>
@@ -714,28 +763,15 @@ the graph are visible in the timeline.</p>
 </tbody>
 </table>
 </div>
-<p>From the <code class="docutils literal notranslate"><span class="pre">cuda_api_sum</span></code> report:</p>
-<div class="pst-scrollable-table-container"><table class="table">
-<thead>
-<tr class="row-odd"><th class="head"><p>API call</p></th>
-<th class="head"><p>Graph path</p></th>
-<th class="head"><p>No-graph path</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>Launch overhead</p></td>
-<td><p>928 × 15µs = <strong>14ms</strong></p></td>
-<td><p>16,732 × 3µs = <strong>53ms</strong></p></td>
-</tr>
-<tr class="row-odd"><td><p>Sync (convergence)</p></td>
-<td><p>938 × 44µs</p></td>
-<td><p>936 × 5µs</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<p>The graph eliminates <strong>~38ms</strong> of launch overhead across ~930 CG iterations,
-explaining the wall-clock speedup.</p>
+<!-- From the `cuda_api_sum` report:
+
+| API call | Graph path | No-graph path |
+|----------|-----------|--------------|
+| Launch overhead | 928 × 15µs = **14ms** | 16,732 × 3µs = **53ms** |
+| Sync (convergence) | 938 × 44µs | 936 × 5µs |
+
+The graph eliminates **~38ms** of launch overhead across ~930 CG iterations,
+explaining the wall-clock speedup. -->
 </section>
 <hr class="docutils" />
 <section id="disabling-cuda-graph-capture">

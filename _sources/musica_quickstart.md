@@ -5,15 +5,65 @@ CUDA graph benchmark on the Musica cluster.
 
 ## Step 1 — Build and install NGSolve with NGSCuda
 
+Create `build.sh` with the following content:
+
+```bash
+#!/bin/sh
+set -e
+
+ml --force purge
+ml load ASC/2023.06
+ml load buildenv/default-foss-2023a
+ml load CMake/3.26.3-GCCcore-12.3.0 CUDA/12.9.0 \
+    SciPy-bundle/2023.07-gfbf-2023a occt/7.8.0-GCCcore-12.3.0
+ml unload pybind11/2.11.1-GCCcore-12.3.0 || true
+
+WORKING_DIR=$(realpath "${PWD}")
+VENV="${WORKING_DIR}/ngs"
+SOURCES="${WORKING_DIR}/src/ngsolve"
+
+virtualenv "${VENV}"
+source ${VENV}/bin/activate
+
+if [ ! -d "${SOURCES}/.git" ]; then
+    mkdir -p "$(dirname "${SOURCES}")"
+    git clone --recurse-submodules \
+        git@gitlab.tuwien.ac.at:ngsolve/ngsolve.git "${SOURCES}"
+fi
+
+BUILD_DIR="${WORKING_DIR}/build/ngsolve"
+rm -rf "${BUILD_DIR}"
+mkdir -p "${BUILD_DIR}"
+cd "${BUILD_DIR}"
+
+cmake "${SOURCES}" \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DUSE_SUPERBUILD=ON \
+  -DUSE_OCC=ON \
+  -DUSE_CCACHE=ON \
+  -DCMAKE_INSTALL_PREFIX="${WORKING_DIR}/install" \
+  -DUSE_CUDA=ON \
+  -DUSE_GUI=OFF \
+  -DCMAKE_CUDA_ARCHITECTURES="90" \
+  -DUSE_UMFPACK=OFF \
+  -DBUILD_STUB_FILES=OFF
+
+make -j 8
+make install
+
+echo "=== Build done ==="
+echo "Install prefix: ${WORKING_DIR}/install"
+echo "Venv:           ${VENV}"
+```
+
 ```bash
 rm -rf build install ngs
 bash build.sh
 ```
-
-This takes approximately 30 minutes. After completion:
+This takes approximately 20-30 minutes on a login node. After completion:
 
 ```bash
-source ~ngs/bin/activate
+source ~/ngs/bin/activate
 pip install numpy scipy matplotlib
 ```
 
@@ -303,7 +353,7 @@ From the `cuda_gpu_kern_sum` report:
 | `dot_kernel` (×2) | 10.0% | 1,745 ns |
 | `csr_partition_kernel` | 9.9% | 3,465 ns |
 
-From the `cuda_api_sum` report:
+<!-- From the `cuda_api_sum` report:
 
 | API call | Graph path | No-graph path |
 |----------|-----------|--------------|
@@ -311,7 +361,7 @@ From the `cuda_api_sum` report:
 | Sync (convergence) | 938 × 44µs | 936 × 5µs |
 
 The graph eliminates **~38ms** of launch overhead across ~930 CG iterations,
-explaining the wall-clock speedup.
+explaining the wall-clock speedup. -->
 
 ---
 
