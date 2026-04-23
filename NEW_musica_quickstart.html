@@ -356,6 +356,10 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Expected output</a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#comparison-no-graph-vs-per-iteration-graph-vs-while-graph">Comparison: No Graph vs Per-Iteration Graph vs WHILE Graph</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#while-graph-full-scaling">WHILE Graph Full Scaling</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#key-observations">Key Observations</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#summary">Summary</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-5-nsight-systems-profiling">Step 5 — Nsight Systems profiling</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#disabling-cuda-graph-capture">Disabling CUDA graph capture</a></li>
 </ul>
@@ -683,7 +687,174 @@ srun<span class="w"> </span>--ntasks<span class="o">=</span><span class="m">1</s
 with peak speedup of <strong>~1.35×</strong> at ndof ≈ 5,000–12,000.</p>
 </section>
 </section>
-<hr class="docutils" />
+<section id="comparison-no-graph-vs-per-iteration-graph-vs-while-graph">
+<h2>Comparison: No Graph vs Per-Iteration Graph vs WHILE Graph<a class="headerlink" href="#comparison-no-graph-vs-per-iteration-graph-vs-while-graph" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head text-right"><p>ndof</p></th>
+<th class="head text-right"><p>No graph (ms)</p></th>
+<th class="head text-right"><p>Per-iter graph (ms)</p></th>
+<th class="head text-right"><p>Speedup 1</p></th>
+<th class="head text-right"><p>WHILE graph (ms)</p></th>
+<th class="head text-right"><p>Speedup 2</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-right"><p>125</p></td>
+<td class="text-right"><p>1.479</p></td>
+<td class="text-right"><p>1.193</p></td>
+<td class="text-right"><p>1.25×</p></td>
+<td class="text-right"><p>1.063</p></td>
+<td class="text-right"><p>1.39×</p></td>
+</tr>
+<tr class="row-odd"><td class="text-right"><p>1,961</p></td>
+<td class="text-right"><p>5.555</p></td>
+<td class="text-right"><p>4.217</p></td>
+<td class="text-right"><p>1.34×</p></td>
+<td class="text-right"><p>3.223</p></td>
+<td class="text-right"><p>1.72×</p></td>
+</tr>
+<tr class="row-even"><td class="text-right"><p>11,825</p></td>
+<td class="text-right"><p>13.876</p></td>
+<td class="text-right"><p>10.478</p></td>
+<td class="text-right"><p>1.35×</p></td>
+<td class="text-right"><p>7.824</p></td>
+<td class="text-right"><p>1.77×</p></td>
+</tr>
+<tr class="row-odd"><td class="text-right"><p>46,741</p></td>
+<td class="text-right"><p>29.865</p></td>
+<td class="text-right"><p>23.143</p></td>
+<td class="text-right"><p>1.30×</p></td>
+<td class="text-right"><p>17.815</p></td>
+<td class="text-right"><p>1.68×</p></td>
+</tr>
+<tr class="row-even"><td class="text-right"><p>185,809</p></td>
+<td class="text-right"><p>91.014</p></td>
+<td class="text-right"><p>76.780</p></td>
+<td class="text-right"><p>1.19×</p></td>
+<td class="text-right"><p>65.536</p></td>
+<td class="text-right"><p>1.39×</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Speedup 1</strong> = No graph / Per-iteration graph<br />
+<strong>Speedup 2</strong> = No graph / WHILE graph</p>
+</section>
+<section id="while-graph-full-scaling">
+<h2>WHILE Graph Full Scaling<a class="headerlink" href="#while-graph-full-scaling" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head text-right"><p>ndof</p></th>
+<th class="head text-right"><p>No graph (ms)</p></th>
+<th class="head text-right"><p>WHILE graph (ms)</p></th>
+<th class="head text-right"><p>Speedup</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-right"><p>9</p></td>
+<td class="text-right"><p>0.246</p></td>
+<td class="text-right"><p>0.472</p></td>
+<td class="text-right"><p>0.52×</p></td>
+</tr>
+<tr class="row-odd"><td class="text-right"><p>21</p></td>
+<td class="text-right"><p>0.399</p></td>
+<td class="text-right"><p>0.532</p></td>
+<td class="text-right"><p>0.75×</p></td>
+</tr>
+<tr class="row-even"><td class="text-right"><p>45</p></td>
+<td class="text-right"><p>0.985</p></td>
+<td class="text-right"><p>0.814</p></td>
+<td class="text-right"><p>1.21×</p></td>
+</tr>
+<tr class="row-odd"><td class="text-right"><p>61</p></td>
+<td class="text-right"><p>1.202</p></td>
+<td class="text-right"><p>0.928</p></td>
+<td class="text-right"><p>1.30×</p></td>
+</tr>
+<tr class="row-even"><td class="text-right"><p>125</p></td>
+<td class="text-right"><p>1.479</p></td>
+<td class="text-right"><p>1.063</p></td>
+<td class="text-right"><p>1.39×</p></td>
+</tr>
+<tr class="row-odd"><td class="text-right"><p>221</p></td>
+<td class="text-right"><p>1.852</p></td>
+<td class="text-right"><p>1.263</p></td>
+<td class="text-right"><p>1.47×</p></td>
+</tr>
+<tr class="row-even"><td class="text-right"><p>501</p></td>
+<td class="text-right"><p>2.816</p></td>
+<td class="text-right"><p>1.754</p></td>
+<td class="text-right"><p>1.61×</p></td>
+</tr>
+<tr class="row-odd"><td class="text-right"><p>997</p></td>
+<td class="text-right"><p>4.025</p></td>
+<td class="text-right"><p>2.401</p></td>
+<td class="text-right"><p>1.68×</p></td>
+</tr>
+<tr class="row-even"><td class="text-right"><p>1,961</p></td>
+<td class="text-right"><p>5.555</p></td>
+<td class="text-right"><p>3.223</p></td>
+<td class="text-right"><p>1.72×</p></td>
+</tr>
+<tr class="row-odd"><td class="text-right"><p>5,277</p></td>
+<td class="text-right"><p>9.206</p></td>
+<td class="text-right"><p>5.186</p></td>
+<td class="text-right"><p>1.78×</p></td>
+</tr>
+<tr class="row-even"><td class="text-right"><p>11,825</p></td>
+<td class="text-right"><p>13.876</p></td>
+<td class="text-right"><p>7.824</p></td>
+<td class="text-right"><p>1.77×</p></td>
+</tr>
+<tr class="row-odd"><td class="text-right"><p>46,741</p></td>
+<td class="text-right"><p>29.865</p></td>
+<td class="text-right"><p>17.815</p></td>
+<td class="text-right"><p>1.68×</p></td>
+</tr>
+<tr class="row-even"><td class="text-right"><p>95,225</p></td>
+<td class="text-right"><p>48.156</p></td>
+<td class="text-right"><p>30.274</p></td>
+<td class="text-right"><p>1.59×</p></td>
+</tr>
+<tr class="row-odd"><td class="text-right"><p>185,809</p></td>
+<td class="text-right"><p>91.014</p></td>
+<td class="text-right"><p>65.536</p></td>
+<td class="text-right"><p>1.39×</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="key-observations">
+<h2>Key Observations<a class="headerlink" href="#key-observations" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Small ndof (&lt; 45):</strong> WHILE graph slower — graph build overhead dominates</p></li>
+<li><p><strong>Break-even:</strong> ~ndof = 45</p></li>
+<li><p><strong>Peak speedup:</strong> ~1.78× at ndof ≈ 5,000–12,000</p></li>
+<li><p><strong>vs per-iteration graph:</strong> WHILE graph consistently ~30–40% faster</p></li>
+<li><p><strong>Large ndof:</strong> Speedup decreases as compute time dominates</p></li>
+</ul>
+</section>
+<section id="summary">
+<h2>Summary<a class="headerlink" href="#summary" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Approach</p></th>
+<th class="head"><p>Peak speedup</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Per-iteration graph</p></td>
+<td><p>~1.35×</p></td>
+</tr>
+<tr class="row-odd"><td><p>WHILE graph</p></td>
+<td><p>~1.78×</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
 <section id="step-5-nsight-systems-profiling">
 <h2>Step 5 — Nsight Systems profiling<a class="headerlink" href="#step-5-nsight-systems-profiling" title="Link to this heading">#</a></h2>
 <p>Create <code class="docutils literal notranslate"><span class="pre">submit_nsys.sh</span></code>:</p>
@@ -851,6 +1022,10 @@ explaining the wall-clock speedup. -->
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Expected output</a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#comparison-no-graph-vs-per-iteration-graph-vs-while-graph">Comparison: No Graph vs Per-Iteration Graph vs WHILE Graph</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#while-graph-full-scaling">WHILE Graph Full Scaling</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#key-observations">Key Observations</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#summary">Summary</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-5-nsight-systems-profiling">Step 5 — Nsight Systems profiling</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#disabling-cuda-graph-capture">Disabling CUDA graph capture</a></li>
 </ul>

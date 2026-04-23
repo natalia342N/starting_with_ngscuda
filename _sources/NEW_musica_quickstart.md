@@ -288,7 +288,53 @@ sbatch submit_scaling.sh
 The graph version becomes beneficial above approximately **ndof = 30**,
 with peak speedup of **~1.35×** at ndof ≈ 5,000–12,000.
 
----
+## Comparison: No Graph vs Per-Iteration Graph vs WHILE Graph
+
+| ndof | No graph (ms) | Per-iter graph (ms) | Speedup 1 | WHILE graph (ms) | Speedup 2 |
+|-----:|-------------:|-------------------:|----------:|-----------------:|----------:|
+| 125 | 1.479 | 1.193 | 1.25× | 1.063 | 1.39× |
+| 1,961 | 5.555 | 4.217 | 1.34× | 3.223 | 1.72× |
+| 11,825 | 13.876 | 10.478 | 1.35× | 7.824 | 1.77× |
+| 46,741 | 29.865 | 23.143 | 1.30× | 17.815 | 1.68× |
+| 185,809 | 91.014 | 76.780 | 1.19× | 65.536 | 1.39× |
+
+**Speedup 1** = No graph / Per-iteration graph  
+**Speedup 2** = No graph / WHILE graph  
+
+## WHILE Graph Full Scaling
+
+| ndof | No graph (ms) | WHILE graph (ms) | Speedup |
+|-----:|-------------:|-----------------:|--------:|
+| 9 | 0.246 | 0.472 | 0.52× |
+| 21 | 0.399 | 0.532 | 0.75× |
+| 45 | 0.985 | 0.814 | 1.21× |
+| 61 | 1.202 | 0.928 | 1.30× |
+| 125 | 1.479 | 1.063 | 1.39× |
+| 221 | 1.852 | 1.263 | 1.47× |
+| 501 | 2.816 | 1.754 | 1.61× |
+| 997 | 4.025 | 2.401 | 1.68× |
+| 1,961 | 5.555 | 3.223 | 1.72× |
+| 5,277 | 9.206 | 5.186 | 1.78× |
+| 11,825 | 13.876 | 7.824 | 1.77× |
+| 46,741 | 29.865 | 17.815 | 1.68× |
+| 95,225 | 48.156 | 30.274 | 1.59× |
+| 185,809 | 91.014 | 65.536 | 1.39× |
+
+## Key Observations
+
+- **Small ndof (< 45):** WHILE graph slower — graph build overhead dominates
+- **Break-even:** ~ndof = 45
+- **Peak speedup:** ~1.78× at ndof ≈ 5,000–12,000
+- **vs per-iteration graph:** WHILE graph consistently ~30–40% faster
+- **Large ndof:** Speedup decreases as compute time dominates
+
+## Summary
+
+| Approach | Peak speedup |
+|----------|-------------|
+| Per-iteration graph | ~1.35× |
+| WHILE graph | ~1.78× |
+
 
 ## Step 5 — Nsight Systems profiling
 
