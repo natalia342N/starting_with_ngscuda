@@ -1,4 +1,4 @@
-# NEW_Running DevCGSolver on Musica
+# Running DevCGSolver on Musica
 
 This page provides instructions for running the `DevCGSolver` 
 CUDA graph benchmark on the Musica cluster.
@@ -13,9 +13,9 @@ set -e
 
 ml --force purge
 ml load ASC/2023.06
-ml load buildenv/default-foss-2023a
 ml load CMake/3.26.3-GCCcore-12.3.0 CUDA/12.9.0 \
     SciPy-bundle/2023.07-gfbf-2023a occt/7.8.0-GCCcore-12.3.0
+ml load buildenv/default-foss-2023a
 ml unload pybind11/2.11.1-GCCcore-12.3.0 || true
 
 WORKING_DIR=$(realpath "${PWD}")
@@ -60,6 +60,7 @@ echo "Venv:           ${VENV}"
 rm -rf build install ngs
 bash build.sh
 ```
+
 This takes approximately 20-30 minutes on a login node. After completion:
 
 ```bash
@@ -127,27 +128,28 @@ Create the submit script `submit_timing.sh`:
 #SBATCH --qos=zen4_0768_h100x4
 #SBATCH --time=00:10:00
 #SBATCH --output=%x-%j.out
-#SBATCH --error=%x-%j.err
 
 ml --force purge
 ml load ASC/2023.06
-ml load buildenv/default-foss-2023a
 ml load CMake/3.26.3-GCCcore-12.3.0 CUDA/12.9.0
-ml load SciPy-bundle/2023.07-gfbf-2023a
-ml load occt/7.8.0-GCCcore-12.3.0
+ml load SciPy-bundle/2023.07-gfbf-2023a occt/7.8.0-GCCcore-12.3.0
+ml load buildenv/default-foss-2023a
 ml unload pybind11/2.11.1-GCCcore-12.3.0 || true
 
-source ~/starting_with_ngscuda/ngs/bin/activate
-export PYTHONPATH=$(find ~/starting_with_ngscuda/install \
-    -maxdepth 6 -type d -name site-packages | head -1)
+WORKING_DIR="${SLURM_SUBMIT_DIR:-$PWD}"
+source "$WORKING_DIR/ngs/bin/activate"
+
+PREFIX="$WORKING_DIR/install"
+PYDIR="$PREFIX/lib/python3.11/site-packages"
+NUMPY_DIR=/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen4/software/SciPy-bundle/2023.07-gfbf-2023a/lib/python3.11/site-packages
+export PYTHONPATH="$PYDIR:$NUMPY_DIR"
+export PATH="$PREFIX/bin:$PATH"
 
 echo "=== NO GRAPH ==="
-NO_CUDA_GRAPH=1 srun --ntasks=1 \
-    python ~/starting_with_ngscuda/test_devcg.py
+NO_CUDA_GRAPH=1 python "$WORKING_DIR/test_devcg.py"
 
 echo "=== GRAPH ==="
-srun --ntasks=1 \
-    python ~/starting_with_ngscuda/test_devcg.py
+python "$WORKING_DIR/test_devcg.py"
 ```
 
 Submit:
@@ -164,22 +166,24 @@ CUDA Device 0: NVIDIA H100, cap 9.0
 ndof       = 46741
 |sol|      = 1.15654611e+00
 use_graph  = False
-elapsed    = 30.307 ms
+elapsed    = 30.239 ms
 
 === GRAPH ===
 CUDA Device 0: NVIDIA H100, cap 9.0
-[CudaGraph] captured nodes: 22
+[CudaGraph] captured nodes: 18
+[CudaWhileGraph] body graph nodes: 2
+[CudaWhileGraph] Build successful
 ndof       = 46741
 |sol|      = 1.15654611e+00
 use_graph  = True
-elapsed    = 23.532 ms
+elapsed    = 18.135 ms
 ```
 
-Speedup: **~1.29×**, with 22 kernel nodes captured in the graph.
+Speedup: **~1.67×**, with the entire CG solve running as a single WHILE graph launch.
 
 ---
 
-## Scaling 
+## Scaling
 
 Create `test_devcg_scaling.py`:
 
@@ -247,23 +251,25 @@ Create `submit_scaling.sh`:
 
 ml --force purge
 ml load ASC/2023.06
-ml load buildenv/default-foss-2023a
 ml load CMake/3.26.3-GCCcore-12.3.0 CUDA/12.9.0
-ml load SciPy-bundle/2023.07-gfbf-2023a
-ml load occt/7.8.0-GCCcore-12.3.0
+ml load SciPy-bundle/2023.07-gfbf-2023a occt/7.8.0-GCCcore-12.3.0
+ml load buildenv/default-foss-2023a
 ml unload pybind11/2.11.1-GCCcore-12.3.0 || true
 
-source ~/starting_with_ngscuda/ngs/bin/activate
-export PYTHONPATH=$(find ~/starting_with_ngscuda/install \
-    -maxdepth 6 -type d -name site-packages | head -1)
+WORKING_DIR="${SLURM_SUBMIT_DIR:-$PWD}"
+source "$WORKING_DIR/ngs/bin/activate"
+
+PREFIX="$WORKING_DIR/install"
+PYDIR="$PREFIX/lib/python3.11/site-packages"
+NUMPY_DIR=/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen4/software/SciPy-bundle/2023.07-gfbf-2023a/lib/python3.11/site-packages
+export PYTHONPATH="$PYDIR:$NUMPY_DIR"
+export PATH="$PREFIX/bin:$PATH"
 
 echo "=== NO GRAPH ==="
-NO_CUDA_GRAPH=1 srun --ntasks=1 \
-    python ~/starting_with_ngscuda/test_devcg_scaling.py
+NO_CUDA_GRAPH=1 python "$WORKING_DIR/test_devcg_scaling.py"
 
 echo "=== GRAPH ==="
-srun --ntasks=1 \
-    python ~/starting_with_ngscuda/test_devcg_scaling.py
+python "$WORKING_DIR/test_devcg_scaling.py"
 ```
 
 Submit:
@@ -272,7 +278,7 @@ Submit:
 sbatch submit_scaling.sh
 ```
 
-### Expected output
+### Expected output (per-iteration graph)
 
 | ndof | no-graph (ms) | graph (ms) | speedup |
 |------|-------------|----------|---------|
@@ -287,6 +293,8 @@ sbatch submit_scaling.sh
 
 The graph version becomes beneficial above approximately **ndof = 30**,
 with peak speedup of **~1.35×** at ndof ≈ 5,000–12,000.
+
+---
 
 ## Comparison: No Graph vs Per-Iteration Graph vs WHILE Graph
 
@@ -335,8 +343,9 @@ with peak speedup of **~1.35×** at ndof ≈ 5,000–12,000.
 | Per-iteration graph | ~1.35× |
 | WHILE graph | ~1.78× |
 
+---
 
-## Step 5 — Nsight Systems profiling
+## Nsight Systems profiling
 
 Create `submit_nsys.sh`:
 
@@ -353,17 +362,21 @@ Create `submit_nsys.sh`:
 
 ml --force purge
 ml load ASC/2023.06
-ml load buildenv/default-foss-2023a
 ml load CMake/3.26.3-GCCcore-12.3.0 CUDA/12.9.0
-ml load SciPy-bundle/2023.07-gfbf-2023a
-ml load occt/7.8.0-GCCcore-12.3.0
+ml load SciPy-bundle/2023.07-gfbf-2023a occt/7.8.0-GCCcore-12.3.0
+ml load buildenv/default-foss-2023a
 ml unload pybind11/2.11.1-GCCcore-12.3.0 || true
 
-source ~/starting_with_ngscuda/ngs/bin/activate
-export PYTHONPATH=$(find ~/starting_with_ngscuda/install \
-    -maxdepth 6 -type d -name site-packages | head -1)
+WORKING_DIR="${SLURM_SUBMIT_DIR:-$PWD}"
+source "$WORKING_DIR/ngs/bin/activate"
 
-OUTBASE="nsys_devcg_${SLURM_JOB_ID}"
+PREFIX="$WORKING_DIR/install"
+PYDIR="$PREFIX/lib/python3.11/site-packages"
+NUMPY_DIR=/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen4/software/SciPy-bundle/2023.07-gfbf-2023a/lib/python3.11/site-packages
+export PYTHONPATH="$PYDIR:$NUMPY_DIR"
+export PATH="$PREFIX/bin:$PATH"
+
+OUTBASE="$WORKING_DIR/nsys_devcg_${SLURM_JOB_ID}"
 
 nsys profile \
     -t cuda,nvtx,osrt \
@@ -374,7 +387,7 @@ nsys profile \
     --sample=none \
     --cpuctxsw=none \
     -o "$OUTBASE" \
-    python ~/starting_with_ngscuda/test_devcg2.py
+    python "$WORKING_DIR/test_devcg.py"
 ```
 
 Submit:
@@ -388,26 +401,27 @@ This generates a `.nsys-rep` file which can be opened in
 With `--cuda-graph-trace=node`, individual kernels inside 
 the graph are visible in the timeline.
 
-
-From the `cuda_gpu_kern_sum` report:
+From the `cuda_gpu_kern_sum` report (WHILE graph, ndof=46,741):
 
 | Kernel | % GPU time | Avg duration |
 |--------|-----------|-------------|
-| `BlockJacobiKernel` | 17.2% | 6,003 ns |
-| `cusparse csrmv_v3` | 13.1% | 4,552 ns |
-| `reduce_1Block` (×2) | 11.2% | 1,950 ns |
-| `dot_kernel` (×2) | 10.0% | 1,745 ns |
-| `csr_partition_kernel` | 9.9% | 3,465 ns |
+| `BlockJacobiKernel` | 15.4% | 6,307 ns |
+| `cusparse csrmv_v3` | 11.8% | 4,857 ns |
+| `reduce_1Block` (×2) | 10.7% | 2,205 ns |
+| `dot_kernel` (×2) | 9.8% | 2,009 ns |
+| `csr_partition_kernel` | 9.1% | 3,732 ns |
+| `ConvergenceCheckKernel` | 3.4% | 1,401 ns |
 
-<!-- From the `cuda_api_sum` report:
+From the `cuda_api_sum` report:
 
-| API call | Graph path | No-graph path |
-|----------|-----------|--------------|
-| Launch overhead | 928 × 15µs = **14ms** | 16,732 × 3µs = **53ms** |
-| Sync (convergence) | 938 × 44µs | 936 × 5µs |
+| API call | Count |
+|----------|-------|
+| `cudaGraphLaunch` | 2 (warm-up + timed) |
+| `cudaStreamSynchronize` | 14 (setup only) |
+| `cudaGraphAddChildGraphNode` | 2 |
 
-The graph eliminates **~38ms** of launch overhead across ~930 CG iterations,
-explaining the wall-clock speedup. -->
+The WHILE graph eliminates all per-iteration DtoH transfers for convergence
+checking — the entire CG solve runs on the GPU with a single `cudaGraphLaunch`.
 
 ---
 
@@ -422,6 +436,5 @@ NO_CUDA_GRAPH=1 python test_devcg.py
 Or in a submit script:
 
 ```bash
-NO_CUDA_GRAPH=1 srun --ntasks=1 python test_devcg.py
+NO_CUDA_GRAPH=1 python "$WORKING_DIR/test_devcg.py"
 ```
-

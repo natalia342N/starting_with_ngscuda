@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>NEW_Running DevCGSolver on Musica &#8212; NGSolve on Device</title>
+    <title>Running DevCGSolver on Musica &#8212; NGSolve on Device</title>
   
   
   
@@ -183,7 +183,7 @@
 <li class="toctree-l1"><a class="reference internal" href="test_graph_capture.html">OLD_Graph Capture with NGSCuda</a></li>
 <li class="toctree-l1"><a class="reference internal" href="timings.html">Timings</a></li>
 <li class="toctree-l1"><a class="reference internal" href="project.html">OLD_TFQMR Solver on Device</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">NEW_Running DevCGSolver on Musica</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Running DevCGSolver on Musica</a></li>
 </ul>
 
     </div>
@@ -337,7 +337,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>NEW_Running DevCGSolver on Musica</h1>
+    <h1>Running DevCGSolver on Musica</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -353,14 +353,14 @@ document.write(`
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scaling">Scaling</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Expected output</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#expected-output-per-iteration-graph">Expected output (per-iteration graph)</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#comparison-no-graph-vs-per-iteration-graph-vs-while-graph">Comparison: No Graph vs Per-Iteration Graph vs WHILE Graph</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#while-graph-full-scaling">WHILE Graph Full Scaling</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#key-observations">Key Observations</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#summary">Summary</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-5-nsight-systems-profiling">Step 5 — Nsight Systems profiling</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#nsight-systems-profiling">Nsight Systems profiling</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#disabling-cuda-graph-capture">Disabling CUDA graph capture</a></li>
 </ul>
             </nav>
@@ -373,8 +373,8 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="new-running-devcgsolver-on-musica">
-<h1>NEW_Running DevCGSolver on Musica<a class="headerlink" href="#new-running-devcgsolver-on-musica" title="Link to this heading">#</a></h1>
+  <section class="tex2jax_ignore mathjax_ignore" id="running-devcgsolver-on-musica">
+<h1>Running DevCGSolver on Musica<a class="headerlink" href="#running-devcgsolver-on-musica" title="Link to this heading">#</a></h1>
 <p>This page provides instructions for running the <code class="docutils literal notranslate"><span class="pre">DevCGSolver</span></code>
 CUDA graph benchmark on the Musica cluster.</p>
 <section id="step-1-build-and-install-ngsolve-with-ngscuda">
@@ -385,9 +385,9 @@ CUDA graph benchmark on the Musica cluster.</p>
 
 ml<span class="w"> </span>--force<span class="w"> </span>purge
 ml<span class="w"> </span>load<span class="w"> </span>ASC/2023.06
-ml<span class="w"> </span>load<span class="w"> </span>buildenv/default-foss-2023a
 ml<span class="w"> </span>load<span class="w"> </span>CMake/3.26.3-GCCcore-12.3.0<span class="w"> </span>CUDA/12.9.0<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>SciPy-bundle/2023.07-gfbf-2023a<span class="w"> </span>occt/7.8.0-GCCcore-12.3.0
+ml<span class="w"> </span>load<span class="w"> </span>buildenv/default-foss-2023a
 ml<span class="w"> </span>unload<span class="w"> </span>pybind11/2.11.1-GCCcore-12.3.0<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">true</span>
 
 <span class="nv">WORKING_DIR</span><span class="o">=</span><span class="k">$(</span>realpath<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">PWD</span><span class="si">}</span><span class="s2">&quot;</span><span class="k">)</span>
@@ -493,27 +493,28 @@ pip<span class="w"> </span>install<span class="w"> </span>numpy<span class="w"> 
 <span class="c1">#SBATCH --qos=zen4_0768_h100x4</span>
 <span class="c1">#SBATCH --time=00:10:00</span>
 <span class="c1">#SBATCH --output=%x-%j.out</span>
-<span class="c1">#SBATCH --error=%x-%j.err</span>
 
 ml<span class="w"> </span>--force<span class="w"> </span>purge
 ml<span class="w"> </span>load<span class="w"> </span>ASC/2023.06
-ml<span class="w"> </span>load<span class="w"> </span>buildenv/default-foss-2023a
 ml<span class="w"> </span>load<span class="w"> </span>CMake/3.26.3-GCCcore-12.3.0<span class="w"> </span>CUDA/12.9.0
-ml<span class="w"> </span>load<span class="w"> </span>SciPy-bundle/2023.07-gfbf-2023a
-ml<span class="w"> </span>load<span class="w"> </span>occt/7.8.0-GCCcore-12.3.0
+ml<span class="w"> </span>load<span class="w"> </span>SciPy-bundle/2023.07-gfbf-2023a<span class="w"> </span>occt/7.8.0-GCCcore-12.3.0
+ml<span class="w"> </span>load<span class="w"> </span>buildenv/default-foss-2023a
 ml<span class="w"> </span>unload<span class="w"> </span>pybind11/2.11.1-GCCcore-12.3.0<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">true</span>
 
-<span class="nb">source</span><span class="w"> </span>~/starting_with_ngscuda/ngs/bin/activate
-<span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span><span class="k">$(</span>find<span class="w"> </span>~/starting_with_ngscuda/install<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>-maxdepth<span class="w"> </span><span class="m">6</span><span class="w"> </span>-type<span class="w"> </span>d<span class="w"> </span>-name<span class="w"> </span>site-packages<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-1<span class="k">)</span>
+<span class="nv">WORKING_DIR</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">SLURM_SUBMIT_DIR</span><span class="k">:-</span><span class="nv">$PWD</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="nb">source</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$WORKING_DIR</span><span class="s2">/ngs/bin/activate&quot;</span>
+
+<span class="nv">PREFIX</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$WORKING_DIR</span><span class="s2">/install&quot;</span>
+<span class="nv">PYDIR</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$PREFIX</span><span class="s2">/lib/python3.11/site-packages&quot;</span>
+<span class="nv">NUMPY_DIR</span><span class="o">=</span>/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen4/software/SciPy-bundle/2023.07-gfbf-2023a/lib/python3.11/site-packages
+<span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$PYDIR</span><span class="s2">:</span><span class="nv">$NUMPY_DIR</span><span class="s2">&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">PATH</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$PREFIX</span><span class="s2">/bin:</span><span class="nv">$PATH</span><span class="s2">&quot;</span>
 
 <span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;=== NO GRAPH ===&quot;</span>
-<span class="nv">NO_CUDA_GRAPH</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>srun<span class="w"> </span>--ntasks<span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>python<span class="w"> </span>~/starting_with_ngscuda/test_devcg.py
+<span class="nv">NO_CUDA_GRAPH</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>python<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$WORKING_DIR</span><span class="s2">/test_devcg.py&quot;</span>
 
 <span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;=== GRAPH ===&quot;</span>
-srun<span class="w"> </span>--ntasks<span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>python<span class="w"> </span>~/starting_with_ngscuda/test_devcg.py
+python<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$WORKING_DIR</span><span class="s2">/test_devcg.py&quot;</span>
 </pre></div>
 </div>
 <p>Submit:</p>
@@ -527,18 +528,20 @@ srun<span class="w"> </span>--ntasks<span class="o">=</span><span class="m">1</s
 <span class="n">ndof</span>       <span class="o">=</span> <span class="mi">46741</span>
 <span class="o">|</span><span class="n">sol</span><span class="o">|</span>      <span class="o">=</span> <span class="mf">1.15654611e+00</span>
 <span class="n">use_graph</span>  <span class="o">=</span> <span class="kc">False</span>
-<span class="n">elapsed</span>    <span class="o">=</span> <span class="mf">30.307</span> <span class="n">ms</span>
+<span class="n">elapsed</span>    <span class="o">=</span> <span class="mf">30.239</span> <span class="n">ms</span>
 
 <span class="o">===</span> <span class="n">GRAPH</span> <span class="o">===</span>
 <span class="n">CUDA</span> <span class="n">Device</span> <span class="mi">0</span><span class="p">:</span> <span class="n">NVIDIA</span> <span class="n">H100</span><span class="p">,</span> <span class="n">cap</span> <span class="mf">9.0</span>
-<span class="p">[</span><span class="n">CudaGraph</span><span class="p">]</span> <span class="n">captured</span> <span class="n">nodes</span><span class="p">:</span> <span class="mi">22</span>
+<span class="p">[</span><span class="n">CudaGraph</span><span class="p">]</span> <span class="n">captured</span> <span class="n">nodes</span><span class="p">:</span> <span class="mi">18</span>
+<span class="p">[</span><span class="n">CudaWhileGraph</span><span class="p">]</span> <span class="n">body</span> <span class="n">graph</span> <span class="n">nodes</span><span class="p">:</span> <span class="mi">2</span>
+<span class="p">[</span><span class="n">CudaWhileGraph</span><span class="p">]</span> <span class="n">Build</span> <span class="n">successful</span>
 <span class="n">ndof</span>       <span class="o">=</span> <span class="mi">46741</span>
 <span class="o">|</span><span class="n">sol</span><span class="o">|</span>      <span class="o">=</span> <span class="mf">1.15654611e+00</span>
 <span class="n">use_graph</span>  <span class="o">=</span> <span class="kc">True</span>
-<span class="n">elapsed</span>    <span class="o">=</span> <span class="mf">23.532</span> <span class="n">ms</span>
+<span class="n">elapsed</span>    <span class="o">=</span> <span class="mf">18.135</span> <span class="n">ms</span>
 </pre></div>
 </div>
-<p>Speedup: <strong>~1.29×</strong>, with 22 kernel nodes captured in the graph.</p>
+<p>Speedup: <strong>~1.67×</strong>, with the entire CG solve running as a single WHILE graph launch.</p>
 </section>
 </section>
 <hr class="docutils" />
@@ -606,31 +609,33 @@ srun<span class="w"> </span>--ntasks<span class="o">=</span><span class="m">1</s
 
 ml<span class="w"> </span>--force<span class="w"> </span>purge
 ml<span class="w"> </span>load<span class="w"> </span>ASC/2023.06
-ml<span class="w"> </span>load<span class="w"> </span>buildenv/default-foss-2023a
 ml<span class="w"> </span>load<span class="w"> </span>CMake/3.26.3-GCCcore-12.3.0<span class="w"> </span>CUDA/12.9.0
-ml<span class="w"> </span>load<span class="w"> </span>SciPy-bundle/2023.07-gfbf-2023a
-ml<span class="w"> </span>load<span class="w"> </span>occt/7.8.0-GCCcore-12.3.0
+ml<span class="w"> </span>load<span class="w"> </span>SciPy-bundle/2023.07-gfbf-2023a<span class="w"> </span>occt/7.8.0-GCCcore-12.3.0
+ml<span class="w"> </span>load<span class="w"> </span>buildenv/default-foss-2023a
 ml<span class="w"> </span>unload<span class="w"> </span>pybind11/2.11.1-GCCcore-12.3.0<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">true</span>
 
-<span class="nb">source</span><span class="w"> </span>~/starting_with_ngscuda/ngs/bin/activate
-<span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span><span class="k">$(</span>find<span class="w"> </span>~/starting_with_ngscuda/install<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>-maxdepth<span class="w"> </span><span class="m">6</span><span class="w"> </span>-type<span class="w"> </span>d<span class="w"> </span>-name<span class="w"> </span>site-packages<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-1<span class="k">)</span>
+<span class="nv">WORKING_DIR</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">SLURM_SUBMIT_DIR</span><span class="k">:-</span><span class="nv">$PWD</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="nb">source</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$WORKING_DIR</span><span class="s2">/ngs/bin/activate&quot;</span>
+
+<span class="nv">PREFIX</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$WORKING_DIR</span><span class="s2">/install&quot;</span>
+<span class="nv">PYDIR</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$PREFIX</span><span class="s2">/lib/python3.11/site-packages&quot;</span>
+<span class="nv">NUMPY_DIR</span><span class="o">=</span>/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen4/software/SciPy-bundle/2023.07-gfbf-2023a/lib/python3.11/site-packages
+<span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$PYDIR</span><span class="s2">:</span><span class="nv">$NUMPY_DIR</span><span class="s2">&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">PATH</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$PREFIX</span><span class="s2">/bin:</span><span class="nv">$PATH</span><span class="s2">&quot;</span>
 
 <span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;=== NO GRAPH ===&quot;</span>
-<span class="nv">NO_CUDA_GRAPH</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>srun<span class="w"> </span>--ntasks<span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>python<span class="w"> </span>~/starting_with_ngscuda/test_devcg_scaling.py
+<span class="nv">NO_CUDA_GRAPH</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>python<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$WORKING_DIR</span><span class="s2">/test_devcg_scaling.py&quot;</span>
 
 <span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;=== GRAPH ===&quot;</span>
-srun<span class="w"> </span>--ntasks<span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>python<span class="w"> </span>~/starting_with_ngscuda/test_devcg_scaling.py
+python<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$WORKING_DIR</span><span class="s2">/test_devcg_scaling.py&quot;</span>
 </pre></div>
 </div>
 <p>Submit:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sbatch<span class="w"> </span>submit_scaling.sh
 </pre></div>
 </div>
-<section id="id1">
-<h3>Expected output<a class="headerlink" href="#id1" title="Link to this heading">#</a></h3>
+<section id="expected-output-per-iteration-graph">
+<h3>Expected output (per-iteration graph)<a class="headerlink" href="#expected-output-per-iteration-graph" title="Link to this heading">#</a></h3>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>ndof</p></th>
@@ -687,6 +692,7 @@ srun<span class="w"> </span>--ntasks<span class="o">=</span><span class="m">1</s
 with peak speedup of <strong>~1.35×</strong> at ndof ≈ 5,000–12,000.</p>
 </section>
 </section>
+<hr class="docutils" />
 <section id="comparison-no-graph-vs-per-iteration-graph-vs-while-graph">
 <h2>Comparison: No Graph vs Per-Iteration Graph vs WHILE Graph<a class="headerlink" href="#comparison-no-graph-vs-per-iteration-graph-vs-while-graph" title="Link to this heading">#</a></h2>
 <div class="pst-scrollable-table-container"><table class="table">
@@ -855,8 +861,9 @@ with peak speedup of <strong>~1.35×</strong> at ndof ≈ 5,000–12,000.</p>
 </table>
 </div>
 </section>
-<section id="step-5-nsight-systems-profiling">
-<h2>Step 5 — Nsight Systems profiling<a class="headerlink" href="#step-5-nsight-systems-profiling" title="Link to this heading">#</a></h2>
+<hr class="docutils" />
+<section id="nsight-systems-profiling">
+<h2>Nsight Systems profiling<a class="headerlink" href="#nsight-systems-profiling" title="Link to this heading">#</a></h2>
 <p>Create <code class="docutils literal notranslate"><span class="pre">submit_nsys.sh</span></code>:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/bin/bash</span>
 <span class="c1">#SBATCH --job-name=ngscuda_nsys</span>
@@ -870,17 +877,21 @@ with peak speedup of <strong>~1.35×</strong> at ndof ≈ 5,000–12,000.</p>
 
 ml<span class="w"> </span>--force<span class="w"> </span>purge
 ml<span class="w"> </span>load<span class="w"> </span>ASC/2023.06
-ml<span class="w"> </span>load<span class="w"> </span>buildenv/default-foss-2023a
 ml<span class="w"> </span>load<span class="w"> </span>CMake/3.26.3-GCCcore-12.3.0<span class="w"> </span>CUDA/12.9.0
-ml<span class="w"> </span>load<span class="w"> </span>SciPy-bundle/2023.07-gfbf-2023a
-ml<span class="w"> </span>load<span class="w"> </span>occt/7.8.0-GCCcore-12.3.0
+ml<span class="w"> </span>load<span class="w"> </span>SciPy-bundle/2023.07-gfbf-2023a<span class="w"> </span>occt/7.8.0-GCCcore-12.3.0
+ml<span class="w"> </span>load<span class="w"> </span>buildenv/default-foss-2023a
 ml<span class="w"> </span>unload<span class="w"> </span>pybind11/2.11.1-GCCcore-12.3.0<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">true</span>
 
-<span class="nb">source</span><span class="w"> </span>~/starting_with_ngscuda/ngs/bin/activate
-<span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span><span class="k">$(</span>find<span class="w"> </span>~/starting_with_ngscuda/install<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>-maxdepth<span class="w"> </span><span class="m">6</span><span class="w"> </span>-type<span class="w"> </span>d<span class="w"> </span>-name<span class="w"> </span>site-packages<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-1<span class="k">)</span>
+<span class="nv">WORKING_DIR</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">SLURM_SUBMIT_DIR</span><span class="k">:-</span><span class="nv">$PWD</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="nb">source</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$WORKING_DIR</span><span class="s2">/ngs/bin/activate&quot;</span>
 
-<span class="nv">OUTBASE</span><span class="o">=</span><span class="s2">&quot;nsys_devcg_</span><span class="si">${</span><span class="nv">SLURM_JOB_ID</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="nv">PREFIX</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$WORKING_DIR</span><span class="s2">/install&quot;</span>
+<span class="nv">PYDIR</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$PREFIX</span><span class="s2">/lib/python3.11/site-packages&quot;</span>
+<span class="nv">NUMPY_DIR</span><span class="o">=</span>/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen4/software/SciPy-bundle/2023.07-gfbf-2023a/lib/python3.11/site-packages
+<span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$PYDIR</span><span class="s2">:</span><span class="nv">$NUMPY_DIR</span><span class="s2">&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">PATH</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$PREFIX</span><span class="s2">/bin:</span><span class="nv">$PATH</span><span class="s2">&quot;</span>
+
+<span class="nv">OUTBASE</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$WORKING_DIR</span><span class="s2">/nsys_devcg_</span><span class="si">${</span><span class="nv">SLURM_JOB_ID</span><span class="si">}</span><span class="s2">&quot;</span>
 
 nsys<span class="w"> </span>profile<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>-t<span class="w"> </span>cuda,nvtx,osrt<span class="w"> </span><span class="se">\</span>
@@ -891,7 +902,7 @@ nsys<span class="w"> </span>profile<span class="w"> </span><span class="se">\</s
 <span class="w">    </span>--sample<span class="o">=</span>none<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--cpuctxsw<span class="o">=</span>none<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>-o<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$OUTBASE</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>python<span class="w"> </span>~/starting_with_ngscuda/test_devcg2.py
+<span class="w">    </span>python<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$WORKING_DIR</span><span class="s2">/test_devcg.py&quot;</span>
 </pre></div>
 </div>
 <p>Submit:</p>
@@ -902,7 +913,7 @@ nsys<span class="w"> </span>profile<span class="w"> </span><span class="se">\</s
 <strong>NVIDIA Nsight Systems</strong> locally.
 With <code class="docutils literal notranslate"><span class="pre">--cuda-graph-trace=node</span></code>, individual kernels inside
 the graph are visible in the timeline.</p>
-<p>From the <code class="docutils literal notranslate"><span class="pre">cuda_gpu_kern_sum</span></code> report:</p>
+<p>From the <code class="docutils literal notranslate"><span class="pre">cuda_gpu_kern_sum</span></code> report (WHILE graph, ndof=46,741):</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Kernel</p></th>
@@ -912,37 +923,54 @@ the graph are visible in the timeline.</p>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">BlockJacobiKernel</span></code></p></td>
-<td><p>17.2%</p></td>
-<td><p>6,003 ns</p></td>
+<td><p>15.4%</p></td>
+<td><p>6,307 ns</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">cusparse</span> <span class="pre">csrmv_v3</span></code></p></td>
-<td><p>13.1%</p></td>
-<td><p>4,552 ns</p></td>
+<td><p>11.8%</p></td>
+<td><p>4,857 ns</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">reduce_1Block</span></code> (×2)</p></td>
-<td><p>11.2%</p></td>
-<td><p>1,950 ns</p></td>
+<td><p>10.7%</p></td>
+<td><p>2,205 ns</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">dot_kernel</span></code> (×2)</p></td>
-<td><p>10.0%</p></td>
-<td><p>1,745 ns</p></td>
+<td><p>9.8%</p></td>
+<td><p>2,009 ns</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">csr_partition_kernel</span></code></p></td>
-<td><p>9.9%</p></td>
-<td><p>3,465 ns</p></td>
+<td><p>9.1%</p></td>
+<td><p>3,732 ns</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ConvergenceCheckKernel</span></code></p></td>
+<td><p>3.4%</p></td>
+<td><p>1,401 ns</p></td>
 </tr>
 </tbody>
 </table>
 </div>
-<!-- From the `cuda_api_sum` report:
-
-| API call | Graph path | No-graph path |
-|----------|-----------|--------------|
-| Launch overhead | 928 × 15µs = **14ms** | 16,732 × 3µs = **53ms** |
-| Sync (convergence) | 938 × 44µs | 936 × 5µs |
-
-The graph eliminates **~38ms** of launch overhead across ~930 CG iterations,
-explaining the wall-clock speedup. -->
+<p>From the <code class="docutils literal notranslate"><span class="pre">cuda_api_sum</span></code> report:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>API call</p></th>
+<th class="head"><p>Count</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">cudaGraphLaunch</span></code></p></td>
+<td><p>2 (warm-up + timed)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">cudaStreamSynchronize</span></code></p></td>
+<td><p>14 (setup only)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">cudaGraphAddChildGraphNode</span></code></p></td>
+<td><p>2</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The WHILE graph eliminates all per-iteration DtoH transfers for convergence
+checking — the entire CG solve runs on the GPU with a single <code class="docutils literal notranslate"><span class="pre">cudaGraphLaunch</span></code>.</p>
 </section>
 <hr class="docutils" />
 <section id="disabling-cuda-graph-capture">
@@ -952,7 +980,7 @@ explaining the wall-clock speedup. -->
 </pre></div>
 </div>
 <p>Or in a submit script:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">NO_CUDA_GRAPH</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>srun<span class="w"> </span>--ntasks<span class="o">=</span><span class="m">1</span><span class="w"> </span>python<span class="w"> </span>test_devcg.py
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">NO_CUDA_GRAPH</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>python<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$WORKING_DIR</span><span class="s2">/test_devcg.py&quot;</span>
 </pre></div>
 </div>
 </section>
@@ -1019,14 +1047,14 @@ explaining the wall-clock speedup. -->
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scaling">Scaling</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Expected output</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#expected-output-per-iteration-graph">Expected output (per-iteration graph)</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#comparison-no-graph-vs-per-iteration-graph-vs-while-graph">Comparison: No Graph vs Per-Iteration Graph vs WHILE Graph</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#while-graph-full-scaling">WHILE Graph Full Scaling</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#key-observations">Key Observations</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#summary">Summary</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-5-nsight-systems-profiling">Step 5 — Nsight Systems profiling</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#nsight-systems-profiling">Nsight Systems profiling</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#disabling-cuda-graph-capture">Disabling CUDA graph capture</a></li>
 </ul>
   </nav></div>
