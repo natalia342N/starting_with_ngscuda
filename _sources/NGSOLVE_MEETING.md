@@ -24,10 +24,13 @@ To run this notebook on GPU in Colab: **Runtime → Change runtime type → T4 G
 ```
 
 ```{code-cell} ipython3
+:tags: [hide-cell]
 import sys
 if 'google.colab' in sys.modules:
-    !pip install --upgrade --pre ngsolve -q
+    !pip install --upgrade --pre ngsolve anywidget -q
 ```
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/natalia342N/starting_with_ngscuda/blob/main/docs/ngsolve_meeting_tutorial.ipynb)
 
 ```{code-cell} ipython3
 # Check GPU is available
