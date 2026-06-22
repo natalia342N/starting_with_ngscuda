@@ -1,11 +1,38 @@
+# # Table of contents
+# # Learn more at https://jupyterbook.org/customize/toc.html
+
+# format: jb-book
+# root: intro.md
+
+# chapters:
+# - file: installation.md
+# - file: test_graph_capture.md
+# - file: timings.md
+# - file: project.md
+# - file: NEW_musica_quickstart.md
+# - file: NGSOLVE_MEETING.md
+
 # Table of contents
 # Learn more at https://jupyterbook.org/customize/toc.html
 
 format: jb-book
 root: intro.md
 
-chapters:
-- file: installation.md
-- file: test_graph_capture.md
-- file: timings.md
-- file: project.md
+parts:
+  - caption: Getting Started
+    chapters:
+    - file: installation.md
+    - file: profiling.md
+
+  - caption: CUDA Graph Acceleration
+    chapters:
+    - file: test_graph_capture.md
+
+  - caption: Results & Timings
+    chapters:
+    - file: timings.md
+    - file: project.md
+
+  - caption: NGSolve User Meeting 2026
+    chapters:
+    - file: NGSOLVE_MEETING.md
