@@ -62,6 +62,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'ngsolve_meeting_tutorial';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="OLD_TFQMR Solver on Device" href="project.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -124,8 +125,6 @@
       
       
       
-        
-      
       <div class="bd-sidebar-primary bd-sidebar">
         
 
@@ -181,13 +180,29 @@
                 </a>
             </li>
         </ul>
-        <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="installation.html">NGSolve on Device with NGSCuda</a></li>
-<li class="toctree-l1"><a class="reference internal" href="test_graph_capture.html">OLD_Graph Capture with NGSCuda</a></li>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Getting Started on Musica (EESSI / ASC 2025)</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">CUDA Graph Acceleration</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="profiling.html">Profiling GPU Overhead with NVIDIA Nsight Systems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="test_graph_capture.html">CUDA Graph Acceleration for Krylov Solvers</a></li>
+
+
+
+
+
+
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Results &amp; Timings</span></p>
+<ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="timings.html">Timings</a></li>
 <li class="toctree-l1"><a class="reference internal" href="project.html">OLD_TFQMR Solver on Device</a></li>
-<li class="toctree-l1"><a class="reference internal" href="NEW_musica_quickstart.html">Running DevCGSolver on Musica</a></li>
-<li class="toctree-l1"><a class="reference internal" href="NGSOLVE_MEETING.html">GPU Accelerated Krylov Solvers in NGSolve</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">NGSolve User Meeting 2026</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">GPU-Accelerated Krylov Solvers in NGSolve</a></li>
 </ul>
 
     </div>
@@ -419,7 +434,8 @@ document.write(`
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 <span class="k">if</span> <span class="s1">&#39;google.colab&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">:</span>
-    <span class="o">!</span>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>--pre<span class="w"> </span>ngsolve<span class="w"> </span>anywidget<span class="w"> </span>-q
+    <span class="c1">#!pip install --upgrade --pre ngsolve anywidget</span>
+    <span class="o">!</span>pip<span class="w"> </span>install<span class="w"> </span><span class="nv">ngsolve</span><span class="o">==</span><span class="m">6</span>.2.2604.post110.dev0
 </pre></div>
 </div>
 </div>
@@ -494,6 +510,11 @@ document.write(`
 <span class="kn">from</span><span class="w"> </span><span class="nn">time</span><span class="w"> </span><span class="kn">import</span> <span class="n">perf_counter</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;NGSolve version:&#39;</span><span class="p">,</span> <span class="n">ngsolve</span><span class="o">.</span><span class="n">__version__</span><span class="p">)</span>
+
+
+<span class="o">!</span>nvidia-smi
+<span class="o">!</span>nvidia-smi<span class="w"> </span>--query-gpu<span class="o">=</span>name,driver_version<span class="w"> </span>--format<span class="o">=</span>csv,noheader
+<span class="o">!</span>nvcc<span class="w"> </span>--version
 </pre></div>
 </div>
 </div>
@@ -570,6 +591,66 @@ with the new <strong>WHILE graph</strong> execution mode.</p>
 </div>
 </div>
 </div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">!</span>nvidia-smi<span class="w"> </span>--query-gpu<span class="o">=</span>compute_cap<span class="w"> </span>--format<span class="o">=</span>csv,noheader
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;NO_CUDA_GRAPH&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;1&#39;</span>
+
+<span class="n">gpu_solver_ng</span> <span class="o">=</span> <span class="n">ngscuda</span><span class="o">.</span><span class="n">DevCGSolver</span><span class="p">(</span>
+    <span class="n">mat</span><span class="o">=</span><span class="n">adev</span><span class="p">,</span> <span class="n">pre</span><span class="o">=</span><span class="n">jacdev</span><span class="p">,</span> <span class="n">adev_raw</span><span class="o">=</span><span class="n">adev</span><span class="p">,</span> <span class="n">cdev_raw</span><span class="o">=</span><span class="n">jacdev</span><span class="p">,</span>
+    <span class="n">maxsteps</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span> <span class="n">printrates</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">)</span>
+<span class="n">gfu</span><span class="o">.</span><span class="n">vec</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="n">gpu_solver_ng</span> <span class="o">*</span> <span class="n">fdev</span><span class="p">)</span><span class="o">.</span><span class="n">Evaluate</span><span class="p">()</span>  <span class="c1"># warm-up</span>
+<span class="n">ts</span> <span class="o">=</span> <span class="n">perf_counter</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span> <span class="n">gfu</span><span class="o">.</span><span class="n">vec</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="n">gpu_solver_ng</span> <span class="o">*</span> <span class="n">fdev</span><span class="p">)</span><span class="o">.</span><span class="n">Evaluate</span><span class="p">()</span>
+<span class="n">gpu_ms_ng</span> <span class="o">=</span> <span class="p">(</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">ts</span><span class="p">)</span> <span class="o">/</span> <span class="mi">5</span> <span class="o">*</span> <span class="mi">1000</span>
+<span class="k">del</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;NO_CUDA_GRAPH&#39;</span><span class="p">]</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;With graph:    </span><span class="si">{</span><span class="n">gpu_ms</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> ms&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No graph:      </span><span class="si">{</span><span class="n">gpu_ms_ng</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> ms&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Graph speedup: </span><span class="si">{</span><span class="n">gpu_ms_ng</span><span class="o">/</span><span class="n">gpu_ms</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">x&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span><span class="o">,</span><span class="w"> </span><span class="nn">sys</span>
+<span class="n">script</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">import ngsolve</span>
+<span class="s2">from ngsolve import *</span>
+<span class="s2">from ngsolve import la</span>
+<span class="s2">import ngsolve.ngscuda as ngscuda</span>
+
+<span class="s2">mesh = Mesh(unit_square.GenerateMesh(maxh=0.1))</span>
+<span class="s2">for l in range(5): mesh.Refine()</span>
+<span class="s2">fes = H1(mesh, order=2, dirichlet=&#39;.*&#39;)</span>
+<span class="s2">u, v = fes.TnT()</span>
+<span class="s2">a = BilinearForm(grad(u)*grad(v)*dx + u*v*dx).Assemble()</span>
+<span class="s2">f = LinearForm(x*v*dx).Assemble()</span>
+<span class="s2">jac = a.mat.CreateSmoother(fes.FreeDofs())</span>
+<span class="s2">adev = a.mat.CreateDeviceMatrix()</span>
+<span class="s2">jacdev = jac.CreateDeviceMatrix()</span>
+<span class="s2">fdev = f.vec.CreateDeviceVector(copy=True)</span>
+<span class="s2">gs = ngscuda.DevCGSolver(mat=adev, pre=jacdev, adev_raw=adev, cdev_raw=jacdev, maxsteps=2000, printrates=False)</span>
+<span class="s2">from ngsolve import GridFunction</span>
+<span class="s2">gfu = GridFunction(fes)</span>
+<span class="s2">gfu.vec.data = (gs * fdev).Evaluate()</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="p">,</span> <span class="s1">&#39;-c&#39;</span><span class="p">,</span> <span class="n">script</span><span class="p">],</span> <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;STDOUT:&quot;</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;STDERR:&quot;</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
 <blockquote>
 <div><p><strong>Note:</strong> <code class="docutils literal notranslate"><span class="pre">DevCGSolver</span></code> automatically selects the best available GPU execution mode:</p>
 <ul class="simple">
@@ -585,7 +666,9 @@ with the new <strong>WHILE graph</strong> execution mode.</p>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;ndof&#39;</span><span class="si">:</span><span class="s2">&gt;8</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="s1">&#39;CPU (ms)&#39;</span><span class="si">:</span><span class="s2">&gt;10</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="s1">&#39;GPU (ms)&#39;</span><span class="si">:</span><span class="s2">&gt;10</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="s1">&#39;speedup&#39;</span><span class="si">:</span><span class="s2">&gt;8</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-&#39;</span> <span class="o">*</span> <span class="mi">42</span><span class="p">)</span>
 
-<span class="k">for</span> <span class="n">nref</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">]:</span>
+<span class="c1">#for nref in [3, 4, 5, 6]:</span>
+<span class="k">for</span> <span class="n">nref</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]:</span>
+
     <span class="n">m</span> <span class="o">=</span> <span class="n">Mesh</span><span class="p">(</span><span class="n">unit_square</span><span class="o">.</span><span class="n">GenerateMesh</span><span class="p">(</span><span class="n">maxh</span><span class="o">=</span><span class="mf">0.1</span><span class="p">))</span>
     <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nref</span><span class="p">):</span> <span class="n">m</span><span class="o">.</span><span class="n">Refine</span><span class="p">()</span>
     <span class="n">fs</span> <span class="o">=</span> <span class="n">H1</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">dirichlet</span><span class="o">=</span><span class="s1">&#39;.*&#39;</span><span class="p">)</span>
@@ -762,6 +845,15 @@ counterparts, and automatically select the best GPU execution strategy.</p>
                 <footer class="prev-next-footer d-print-none">
                   
 <div class="prev-next-area">
+    <a class="left-prev"
+       href="project.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">OLD_TFQMR Solver on Device</p>
+      </div>
+    </a>
 </div>
                 </footer>
               
