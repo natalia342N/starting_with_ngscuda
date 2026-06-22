@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>OLD_Graph Capture with NGSCuda &#8212; NGSolve on Device</title>
+    <title>CUDA Graph Acceleration for Krylov Solvers &#8212; NGSolve on Device</title>
   
   
   
@@ -61,7 +61,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Timings" href="timings.html" />
-    <link rel="prev" title="NGSolve on Device with NGSCuda" href="installation.html" />
+    <link rel="prev" title="Running DevCGSolver on Musica" href="NEW_musica_quickstart.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -175,17 +175,33 @@
         <ul class="nav bd-sidenav bd-sidenav__home-link">
             <li class="toctree-l1">
                 <a class="reference internal" href="intro.html">
-                    Reducing GPU kernel launch overhead in NGSolve using CUDA Graphs
+                    GPU Implementations and CUDA Graph Acceleration of Krylov Solvers for Incompressible Navier–Stokes in NGSolve
                 </a>
             </li>
         </ul>
-        <ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="installation.html">NGSolve on Device with NGSCuda</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">OLD_Graph Capture with NGSCuda</a></li>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Getting Started on Musica (EESSI / ASC 2025)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="NEW_musica_quickstart.html">Running DevCGSolver on Musica</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">CUDA Graph Acceleration</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">CUDA Graph Acceleration for Krylov Solvers</a></li>
+
+
+
+
+
+
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Results &amp; Timings</span></p>
+<ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="timings.html">Timings</a></li>
 <li class="toctree-l1"><a class="reference internal" href="project.html">OLD_TFQMR Solver on Device</a></li>
-<li class="toctree-l1"><a class="reference internal" href="NEW_musica_quickstart.html">Running DevCGSolver on Musica</a></li>
-<li class="toctree-l1"><a class="reference internal" href="NGSOLVE_MEETING.html">GPU-Accelerated Krylov Solvers in NGSolve</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">NGSolve User Meeting 2026</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="NGSOLVE_MEETING.html">GPU Accelerated Krylov Solvers in NGSolve</a></li>
 </ul>
 
     </div>
@@ -339,7 +355,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>OLD_Graph Capture with NGSCuda</h1>
+    <h1>CUDA Graph Acceleration for Krylov Solvers</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -349,9 +365,15 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#basic-example">Basic Example</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#stream-routing">Stream Routing</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">CUDA Graph Acceleration for Krylov Solvers</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#cuda-graphs-capture-once-replay-many-times">CUDA Graphs — capture once, replay many times</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#cuda-while-graph-the-convergence-loop-on-gpu">CUDA WHILE graph — the convergence loop on GPU</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#part-1-devcgsolver-poisson-symmetric-spd">Part 1: DevCGSolver — Poisson (symmetric SPD)</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#h100-ndof-460-033-5-runs-averaged">H100, ndof = 460,033, 5 runs averaged</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#traditional-gpu-cg-python-level-loop-per-iteration-sync">Traditional GPU CG (Python-level loop, per-iteration sync)</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#while-graph-cg-entire-loop-on-gpu-zero-syncs">WHILE graph CG (entire loop on GPU, zero syncs)</a></li>
 </ul>
+
             </nav>
         </div>
     </div>
@@ -362,44 +384,100 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="old-graph-capture-with-ngscuda">
-<h1>OLD_Graph Capture with NGSCuda<a class="headerlink" href="#old-graph-capture-with-ngscuda" title="Link to this heading">#</a></h1>
-<p>CUDA Graphs allow capturing a sequence of GPU operations once and replaying them with lower overhead. This is useful when the same kernel sequence is executed many times, as in Krylov solvers.</p>
-<section id="basic-example">
-<h2>Basic Example<a class="headerlink" href="#basic-example" title="Link to this heading">#</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">ngsolve.ngscuda</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ngscuda</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">ngsolve</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseVector</span>
-
-<span class="n">n</span> <span class="o">=</span> <span class="mi">1_000_000</span>
-<span class="n">v</span> <span class="o">=</span> <span class="n">BaseVector</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
-<span class="n">v</span><span class="p">[:]</span> <span class="o">=</span> <span class="mf">1.0</span>
-<span class="n">dv</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">CreateDeviceVector</span><span class="p">(</span><span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-<span class="c1"># Warm-up</span>
-<span class="n">dv</span> <span class="o">*=</span> <span class="mf">1.000001</span>
-
-<span class="c1"># Capture</span>
-<span class="n">g</span> <span class="o">=</span> <span class="n">ngscuda</span><span class="o">.</span><span class="n">CudaGraph</span><span class="p">()</span>
-<span class="n">g</span><span class="o">.</span><span class="n">BeginCapture</span><span class="p">()</span>
-<span class="n">dv</span> <span class="o">*=</span> <span class="mf">1.000001</span>
-<span class="n">g</span><span class="o">.</span><span class="n">EndCapture</span><span class="p">()</span>
-
-<span class="c1"># Replay 1000 times</span>
-<span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1000</span><span class="p">):</span>
-    <span class="n">g</span><span class="o">.</span><span class="n">Launch</span><span class="p">()</span>
-
-<span class="c1"># Correctness: 1.000001^1000 ≈ 1.001001</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;dv[0]:&quot;</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">dv</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+  <section id="cuda-graph-acceleration-for-krylov-solvers">
+<h1>CUDA Graph Acceleration for Krylov Solvers<a class="headerlink" href="#cuda-graph-acceleration-for-krylov-solvers" title="Link to this heading">#</a></h1>
+<p>NGSolve already supports GPU execution via <code class="docutils literal notranslate"><span class="pre">ngscuda</span></code>, but for matrix-free operators
+(like the convection operator) performance can be limited by <strong>kernel launch and
+synchronization overhead</strong>, especially when the same operator is applied repeatedly.</p>
+<p>CUDA Graphs offer a way to:</p>
+<ul class="simple">
+<li><p><strong>capture</strong> a fixed sequence of GPU operations once</p></li>
+<li><p><strong>replay</strong> it efficiently many times with lower CPU overhead</p></li>
+</ul>
+<p><strong>The bottleneck in Krylov solvers:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>iteration 1:  [GPU kernels] → D2H sync → converged? no → ...
+iteration 2:  [GPU kernels] → D2H sync → converged? no → ...
+   ...
+iteration N:  [GPU kernels] → D2H sync → converged? yes
 </pre></div>
 </div>
-<p>Submit via <code class="docutils literal notranslate"><span class="pre">sbatch</span></code> on a GPU node — see <code class="docutils literal notranslate"><span class="pre">installation.md</span></code> for the job script template.</p>
+<p>~500 iterations × one host–device sync = measurable overhead,
+especially at small–medium problem sizes where GPU compute is fast.</p>
+<blockquote>
+<div><p>The GPU is not the bottleneck — the <strong>synchronization</strong> is.</p>
+</div></blockquote>
 </section>
-<section id="stream-routing">
-<h2>Stream Routing<a class="headerlink" href="#stream-routing" title="Link to this heading">#</a></h2>
-<p>For a kernel to be recorded into a graph, it must be submitted on the <strong>capture stream</strong> — the stream passed to <code class="docutils literal notranslate"><span class="pre">cudaStreamBeginCapture</span></code>.</p>
-<p>In NGSolve, all GPU work runs on <code class="docutils literal notranslate"><span class="pre">ngs_cuda_stream</span></code>. <code class="docutils literal notranslate"><span class="pre">CudaGraph::BeginCapture()</span></code> redirects this global stream to the capture stream, so raw CUDA kernels (such as the block-Jacobi preconditioner) are captured automatically.</p>
-<!-- Library calls such as `cusparseSpMV` use a separate handle with its own stream assignment and require explicit `cusparseSetStream` to participate in capture. -->
+<section id="cuda-graphs-capture-once-replay-many-times">
+<h1>CUDA Graphs — capture once, replay many times<a class="headerlink" href="#cuda-graphs-capture-once-replay-many-times" title="Link to this heading">#</a></h1>
+<p>CUDA Graphs capture a fixed sequence of GPU operations and replay them with minimal CPU overhead.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">ngsolve.ngscuda</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ngscuda</span>
+
+<span class="n">g</span> <span class="o">=</span> <span class="n">ngscuda</span><span class="o">.</span><span class="n">CudaGraph</span><span class="p">()</span>
+<span class="n">g</span><span class="o">.</span><span class="n">BeginCapture</span><span class="p">()</span>
+<span class="n">dv</span> <span class="o">*=</span> <span class="mf">1.000001</span>          <span class="c1"># any GPU kernel(s)</span>
+<span class="n">g</span><span class="o">.</span><span class="n">EndCapture</span><span class="p">()</span>
+
+<span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1000</span><span class="p">):</span>
+    <span class="n">g</span><span class="o">.</span><span class="n">Launch</span><span class="p">()</span>          <span class="c1"># replay</span>
+</pre></div>
+</div>
+<p><strong>For a kernel to be captured, it must run on the capture stream.</strong><br />
+NGSolve routes all GPU work through <code class="docutils literal notranslate"><span class="pre">ngs_cuda_stream</span></code> — <code class="docutils literal notranslate"><span class="pre">BeginCapture()</span></code> redirects this stream automatically, so kernels (SpMV, preconditioner, dot products) are all captured without changes to user code.</p>
+<hr class="docutils" />
 </section>
+<section id="cuda-while-graph-the-convergence-loop-on-gpu">
+<h1>CUDA WHILE graph — the convergence loop on GPU<a class="headerlink" href="#cuda-while-graph-the-convergence-loop-on-gpu" title="Link to this heading">#</a></h1>
+<p>Standard graphs replay a <strong>fixed</strong> sequence. But a Krylov solver must loop until convergence — the number of iterations is not known in advance.</p>
+<p><strong>CUDA WHILE graph</strong> (CUDA ≥ 12.4): the entire convergence loop is a single conditional graph node.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Traditional:   [kernels] → D2H sync → converged? → [kernels] → D2H sync → ...
+WHILE graph:   [capture loop once] → Launch()     ← zero per-iteration syncs
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">ConvergenceCheckKernel</span></code> runs GPU-side and calls <code class="docutils literal notranslate"><span class="pre">cudaGraphSetConditional</span></code> to break the loop — the CPU is not involved until the solve is complete.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Mode</p></th>
+<th class="head"><p>Requirement</p></th>
+<th class="head"><p>Syncs per solve</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>WHILE graph</p></td>
+<td><p>CUDA ≥ 12.4</p></td>
+<td><p><strong>0</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p>Per-iteration graph</p></td>
+<td><p>any CUDA</p></td>
+<td><p>1 per iteration</p></td>
+</tr>
+<tr class="row-even"><td><p>No graph</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">NO_CUDA_GRAPH=1</span></code></p></td>
+<td><p>1 per iteration</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Selected automatically — no user configuration needed.</p>
+</section>
+<section id="part-1-devcgsolver-poisson-symmetric-spd">
+<h1>Part 1: DevCGSolver — Poisson (symmetric SPD)<a class="headerlink" href="#part-1-devcgsolver-poisson-symmetric-spd" title="Link to this heading">#</a></h1>
+</section>
+<section class="tex2jax_ignore mathjax_ignore" id="h100-ndof-460-033-5-runs-averaged">
+<h1>H100, ndof = 460,033, 5 runs averaged<a class="headerlink" href="#h100-ndof-460-033-5-runs-averaged" title="Link to this heading">#</a></h1>
+<p>adev   = a.mat.CreateDeviceMatrix()         # ← 3 lines added
+jacdev = jac.CreateDeviceMatrix()
+fdev   = f.vec.CreateDeviceVector(copy=True)</p>
+</section>
+<section class="tex2jax_ignore mathjax_ignore" id="traditional-gpu-cg-python-level-loop-per-iteration-sync">
+<h1>Traditional GPU CG (Python-level loop, per-iteration sync)<a class="headerlink" href="#traditional-gpu-cg-python-level-loop-per-iteration-sync" title="Link to this heading">#</a></h1>
+<p>inv = CGSolver(adev, jacdev, maxiter=2000)
+gfu.vec.data = (inv * fdev).Evaluate()</p>
+</section>
+<section class="tex2jax_ignore mathjax_ignore" id="while-graph-cg-entire-loop-on-gpu-zero-syncs">
+<h1>WHILE graph CG (entire loop on GPU, zero syncs)<a class="headerlink" href="#while-graph-cg-entire-loop-on-gpu-zero-syncs" title="Link to this heading">#</a></h1>
+<p>gpu_solver = DevCGSolver(mat=adev, pre=jacdev,
+adev_raw=adev, cdev_raw=jacdev, maxsteps=2000)
+gfu.vec.data = (gpu_solver * fdev).Evaluate()</p>
 </section>
 
     <script type="text/x-thebe-config">
@@ -433,12 +511,12 @@ document.write(`
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="installation.html"
+       href="NEW_musica_quickstart.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">NGSolve on Device with NGSCuda</p>
+        <p class="prev-next-title">Running DevCGSolver on Musica</p>
       </div>
     </a>
     <a class="right-next"
@@ -466,9 +544,15 @@ document.write(`
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#basic-example">Basic Example</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#stream-routing">Stream Routing</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">CUDA Graph Acceleration for Krylov Solvers</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#cuda-graphs-capture-once-replay-many-times">CUDA Graphs — capture once, replay many times</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#cuda-while-graph-the-convergence-loop-on-gpu">CUDA WHILE graph — the convergence loop on GPU</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#part-1-devcgsolver-poisson-symmetric-spd">Part 1: DevCGSolver — Poisson (symmetric SPD)</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#h100-ndof-460-033-5-runs-averaged">H100, ndof = 460,033, 5 runs averaged</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#traditional-gpu-cg-python-level-loop-per-iteration-sync">Traditional GPU CG (Python-level loop, per-iteration sync)</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#while-graph-cg-entire-loop-on-gpu-zero-syncs">WHILE graph CG (entire loop on GPU, zero syncs)</a></li>
 </ul>
+
   </nav></div>
 
 </div></div>
