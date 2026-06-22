@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>GPU-Accelerated Krylov Solvers in NGSolve &#8212; NGSolve on Device</title>
+    <title>GPU Accelerated Krylov Solvers in NGSolve &#8212; NGSolve on Device</title>
   
   
   
@@ -176,7 +176,7 @@
         <ul class="nav bd-sidenav bd-sidenav__home-link">
             <li class="toctree-l1">
                 <a class="reference internal" href="intro.html">
-                    Reducing GPU kernel launch overhead in NGSolve using CUDA Graphs
+                    GPU Implementations and CUDA Graph Acceleration of Krylov Solvers for Incompressible Navier–Stokes in NGSolve
                 </a>
             </li>
         </ul>
@@ -186,7 +186,7 @@
 <li class="toctree-l1"><a class="reference internal" href="timings.html">Timings</a></li>
 <li class="toctree-l1"><a class="reference internal" href="project.html">OLD_TFQMR Solver on Device</a></li>
 <li class="toctree-l1"><a class="reference internal" href="NEW_musica_quickstart.html">Running DevCGSolver on Musica</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">GPU-Accelerated Krylov Solvers in NGSolve</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">GPU Accelerated Krylov Solvers in NGSolve</a></li>
 </ul>
 
     </div>
@@ -388,7 +388,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>GPU-Accelerated Krylov Solvers in NGSolve</h1>
+    <h1>GPU Accelerated Krylov Solvers in NGSolve</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -399,7 +399,7 @@ document.write(`
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#part-1-symmetric-problem-poisson-equation">Part 1: Symmetric problem — Poisson equation</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#moving-to-gpu-two-extra-lines">Moving to GPU — two extra lines</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#gpu-acceleration">GPU acceleration</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#part-2-non-symmetric-problem-convection-diffusion">Part 2: Non-symmetric problem — convection-diffusion</a></li>
@@ -416,16 +416,16 @@ document.write(`
                 <article class="bd-article">
                   
   <section class="tex2jax_ignore mathjax_ignore" id="gpu-accelerated-krylov-solvers-in-ngsolve">
-<h1>GPU-Accelerated Krylov Solvers in NGSolve<a class="headerlink" href="#gpu-accelerated-krylov-solvers-in-ngsolve" title="Link to this heading">#</a></h1>
+<h1>GPU Accelerated Krylov Solvers in NGSolve<a class="headerlink" href="#gpu-accelerated-krylov-solvers-in-ngsolve" title="Link to this heading">#</a></h1>
 <p><strong>NGSolve User Meeting 2026 — Natalia Tylek, TU Wien</strong></p>
-<p>This notebook shows how to use the new GPU Krylov solvers in NGSolve:</p>
+<p>This notebook shows how to use the GPU Krylov solvers in NGSolve’s <code class="docutils literal notranslate"><span class="pre">ngscuda</span></code> module:</p>
 <ul class="simple">
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">DevCGSolver</span></code></strong> — for symmetric problems (Poisson, elasticity)</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">DevTFQMRSolver</span></code></strong> — for non-symmetric problems (convection-diffusion, Navier–Stokes)</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">DevCGSolver</span></code></strong> — for symmetric positive-definite problems (Poisson, elasticity)</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">DevTFQMRSolver</span></code></strong> — for non-symmetric problems (convection-diffusion, Navier–Stokes) (TO BE ADDED AFTER MR IS APPROVED)</p></li>
 </ul>
 <div class="important admonition">
 <p class="admonition-title">GPU required</p>
-<p>To run this notebook on GPU in Colab: <strong>Runtime → Change runtime type → T4 GPU</strong></p>
+<p>To run on GPU in Colab: <strong>Runtime → Change runtime type → T4 GPU</strong></p>
 </div>
 <div class="cell tag_hide-cell docutils container">
 <details class="admonition hide above-input">
@@ -445,7 +445,7 @@ document.write(`
 <p><a class="reference external" href="https://colab.research.google.com/github/natalia342N/starting_with_ngscuda/blob/main/docs/ngsolve_meeting_tutorial.ipynb"><img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg" /></a></p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check GPU is available</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check GPU availability</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="s1">&#39;nvidia-smi&#39;</span><span class="p">,</span> <span class="s1">&#39;--query-gpu=name,memory.total&#39;</span><span class="p">,</span> <span class="s1">&#39;--format=csv,noheader&#39;</span><span class="p">],</span>
                         <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -460,7 +460,7 @@ document.write(`
 <div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
 <span class="ne">FileNotFoundError</span><span class="g g-Whitespace">                         </span>Traceback (most recent call last)
 <span class="n">Cell</span> <span class="n">In</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">line</span> <span class="mi">3</span>
-<span class="g g-Whitespace">      </span><span class="mi">1</span> <span class="c1"># Check GPU is available</span>
+<span class="g g-Whitespace">      </span><span class="mi">1</span> <span class="c1"># Check GPU availability</span>
 <span class="g g-Whitespace">      </span><span class="mi">2</span> <span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
 <span class="ne">----&gt; </span><span class="mi">3</span> <span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="s1">&#39;nvidia-smi&#39;</span><span class="p">,</span> <span class="s1">&#39;--query-gpu=name,memory.total&#39;</span><span class="p">,</span> <span class="s1">&#39;--format=csv,noheader&#39;</span><span class="p">],</span>
 <span class="g g-Whitespace">      </span><span class="mi">4</span>                         <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -507,18 +507,8 @@ document.write(`
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ngsolve</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">ngsolve</span><span class="w"> </span><span class="kn">import</span> <span class="n">la</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">netgen.occ</span><span class="w"> </span><span class="kn">import</span> <span class="n">unit_square</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">netgen.csg</span><span class="w"> </span><span class="kn">import</span> <span class="n">unit_cube</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">ngsolve.ngscuda</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ngscuda</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
-
-<span class="k">def</span><span class="w"> </span><span class="nf">timed</span><span class="p">(</span><span class="n">solver</span><span class="p">,</span> <span class="n">rhs</span><span class="p">,</span> <span class="n">sol</span><span class="p">,</span> <span class="n">runs</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Average solver.Mult time over several runs (ms).&quot;&quot;&quot;</span>
-    <span class="n">solver</span><span class="o">.</span><span class="n">Mult</span><span class="p">(</span><span class="n">rhs</span><span class="p">,</span> <span class="n">sol</span><span class="p">)</span>   <span class="c1"># warm-up</span>
-    <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
-    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">runs</span><span class="p">):</span>
-        <span class="n">solver</span><span class="o">.</span><span class="n">Mult</span><span class="p">(</span><span class="n">rhs</span><span class="p">,</span> <span class="n">sol</span><span class="p">)</span>
-    <span class="k">return</span> <span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span><span class="p">)</span> <span class="o">/</span> <span class="n">runs</span> <span class="o">*</span> <span class="mi">1000</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">time</span><span class="w"> </span><span class="kn">import</span> <span class="n">perf_counter</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;NGSolve version:&quot;</span><span class="p">,</span> <span class="n">ngsolve</span><span class="o">.</span><span class="n">__version__</span><span class="p">)</span>
 </pre></div>
@@ -529,18 +519,26 @@ document.write(`
 <section id="part-1-symmetric-problem-poisson-equation">
 <h2>Part 1: Symmetric problem — Poisson equation<a class="headerlink" href="#part-1-symmetric-problem-poisson-equation" title="Link to this heading">#</a></h2>
 <div class="math notranslate nohighlight">
-\[-\Delta u = f \quad \text{in } \Omega, \qquad u = 0 \quad \text{on } \partial\Omega\]</div>
-<p>The stiffness matrix is <strong>symmetric positive definite</strong> → use Conjugate Gradient.</p>
+\[-\Delta u + u = f \quad \text{in } \Omega, \qquad u = 0 \quad \text{on } \partial\Omega\]</div>
+<p>The stiffness matrix is <strong>symmetric positive definite</strong> → Conjugate Gradient.</p>
+<p>This extends the setup from
+<a class="reference external" href="https://docu.ngsolve.org/latest/i-tutorials/unit-5.5-cuda/poisson_cuda.html">5.5.1 Solving the Poisson Equation on devices</a>
+with the new <strong>WHILE graph</strong> execution mode.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Standard NGSolve setup — nothing new here</span>
-<span class="n">mesh</span> <span class="o">=</span> <span class="n">Mesh</span><span class="p">(</span><span class="n">unit_cube</span><span class="o">.</span><span class="n">GenerateMesh</span><span class="p">(</span><span class="n">maxh</span><span class="o">=</span><span class="mf">0.08</span><span class="p">))</span>
-<span class="n">fes</span>  <span class="o">=</span> <span class="n">H1</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">dirichlet</span><span class="o">=</span><span class="s2">&quot;.*&quot;</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Same setup as the official 5.5.1 tutorial</span>
+<span class="n">mesh</span> <span class="o">=</span> <span class="n">Mesh</span><span class="p">(</span><span class="n">unit_square</span><span class="o">.</span><span class="n">GenerateMesh</span><span class="p">(</span><span class="n">maxh</span><span class="o">=</span><span class="mf">0.1</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span> <span class="n">mesh</span><span class="o">.</span><span class="n">Refine</span><span class="p">()</span>
+
+<span class="n">fes</span> <span class="o">=</span> <span class="n">H1</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">dirichlet</span><span class="o">=</span><span class="s2">&quot;.*&quot;</span><span class="p">)</span>
 <span class="n">u</span><span class="p">,</span> <span class="n">v</span> <span class="o">=</span> <span class="n">fes</span><span class="o">.</span><span class="n">TnT</span><span class="p">()</span>
 
-<span class="n">a</span> <span class="o">=</span> <span class="n">BilinearForm</span><span class="p">(</span><span class="n">grad</span><span class="p">(</span><span class="n">u</span><span class="p">)</span><span class="o">*</span><span class="n">grad</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">*</span><span class="n">dx</span><span class="p">)</span><span class="o">.</span><span class="n">Assemble</span><span class="p">()</span>
-<span class="n">f</span> <span class="o">=</span> <span class="n">LinearForm</span><span class="p">(</span><span class="n">x</span><span class="o">*</span><span class="n">y</span><span class="o">*</span><span class="n">z</span><span class="o">*</span><span class="n">v</span><span class="o">*</span><span class="n">dx</span><span class="p">)</span><span class="o">.</span><span class="n">Assemble</span><span class="p">()</span>
+<span class="k">with</span> <span class="n">TaskManager</span><span class="p">():</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">BilinearForm</span><span class="p">(</span><span class="n">grad</span><span class="p">(</span><span class="n">u</span><span class="p">)</span><span class="o">*</span><span class="n">grad</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">*</span><span class="n">dx</span> <span class="o">+</span> <span class="n">u</span><span class="o">*</span><span class="n">v</span><span class="o">*</span><span class="n">dx</span><span class="p">)</span><span class="o">.</span><span class="n">Assemble</span><span class="p">()</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">LinearForm</span><span class="p">(</span><span class="n">x</span><span class="o">*</span><span class="n">v</span><span class="o">*</span><span class="n">dx</span><span class="p">)</span><span class="o">.</span><span class="n">Assemble</span><span class="p">()</span>
+
 <span class="n">gfu</span> <span class="o">=</span> <span class="n">GridFunction</span><span class="p">(</span><span class="n">fes</span><span class="p">)</span>
+<span class="n">jac</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">mat</span><span class="o">.</span><span class="n">CreateSmoother</span><span class="p">(</span><span class="n">fes</span><span class="o">.</span><span class="n">FreeDofs</span><span class="p">())</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ndof = </span><span class="si">{</span><span class="n">fes</span><span class="o">.</span><span class="n">ndof</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
@@ -549,43 +547,41 @@ document.write(`
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># CPU solve — as usual</span>
-<span class="n">pre</span> <span class="o">=</span> <span class="n">Projector</span><span class="p">(</span><span class="n">fes</span><span class="o">.</span><span class="n">FreeDofs</span><span class="p">(),</span> <span class="kc">True</span><span class="p">)</span>
-
-<span class="n">cpu_solver</span> <span class="o">=</span> <span class="n">la</span><span class="o">.</span><span class="n">CGSolver</span><span class="p">(</span><span class="n">mat</span><span class="o">=</span><span class="n">a</span><span class="o">.</span><span class="n">mat</span><span class="p">,</span> <span class="n">pre</span><span class="o">=</span><span class="n">pre</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">,</span> <span class="n">maxsteps</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">printrates</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-
-<span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
-<span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
-    <span class="n">gfu</span><span class="o">.</span><span class="n">vec</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">cpu_solver</span> <span class="o">*</span> <span class="n">f</span><span class="o">.</span><span class="n">vec</span>
-<span class="n">cpu_ms</span> <span class="o">=</span> <span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span><span class="p">)</span> <span class="o">/</span> <span class="mi">5</span> <span class="o">*</span> <span class="mi">1000</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># CPU solve (reference)</span>
+<span class="k">with</span> <span class="n">TaskManager</span><span class="p">():</span>
+    <span class="n">cpu_solver</span> <span class="o">=</span> <span class="n">la</span><span class="o">.</span><span class="n">CGSolver</span><span class="p">(</span><span class="n">mat</span><span class="o">=</span><span class="n">a</span><span class="o">.</span><span class="n">mat</span><span class="p">,</span> <span class="n">pre</span><span class="o">=</span><span class="n">jac</span><span class="p">,</span> <span class="n">maxsteps</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span> <span class="n">printrates</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">gfu</span><span class="o">.</span><span class="n">vec</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">cpu_solver</span> <span class="o">*</span> <span class="n">f</span><span class="o">.</span><span class="n">vec</span>   <span class="c1"># warm-up</span>
+    <span class="n">ts</span> <span class="o">=</span> <span class="n">perf_counter</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span> <span class="n">gfu</span><span class="o">.</span><span class="n">vec</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">cpu_solver</span> <span class="o">*</span> <span class="n">f</span><span class="o">.</span><span class="n">vec</span>
+    <span class="n">cpu_ms</span> <span class="o">=</span> <span class="p">(</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">ts</span><span class="p">)</span> <span class="o">/</span> <span class="mi">5</span> <span class="o">*</span> <span class="mi">1000</span>
 
 <span class="n">ref_norm</span> <span class="o">=</span> <span class="n">Norm</span><span class="p">(</span><span class="n">gfu</span><span class="o">.</span><span class="n">vec</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;CPU CG:  </span><span class="si">{</span><span class="n">cpu_ms</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> ms   |sol| = </span><span class="si">{</span><span class="n">ref_norm</span><span class="si">:</span><span class="s2">.6e</span><span class="si">}</span><span class="s2">   iters = </span><span class="si">{</span><span class="n">cpu_solver</span><span class="o">.</span><span class="n">GetSteps</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;CPU CG:  </span><span class="si">{</span><span class="n">cpu_ms</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> ms   |sol| = </span><span class="si">{</span><span class="n">ref_norm</span><span class="si">:</span><span class="s2">.6e</span><span class="si">}</span><span class="s2">   steps = </span><span class="si">{</span><span class="n">cpu_solver</span><span class="o">.</span><span class="n">GetSteps</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
-<section id="moving-to-gpu-two-extra-lines">
-<h3>Moving to GPU — two extra lines<a class="headerlink" href="#moving-to-gpu-two-extra-lines" title="Link to this heading">#</a></h3>
-<p>Everything else stays the same. You get the same result, faster.</p>
+<section id="gpu-acceleration">
+<h3>GPU acceleration<a class="headerlink" href="#gpu-acceleration" title="Link to this heading">#</a></h3>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Move matrices to GPU  ← new</span>
-<span class="n">adev</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">mat</span><span class="o">.</span><span class="n">CreateDeviceMatrix</span><span class="p">()</span>
-<span class="n">pdev</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">CreateDeviceMatrix</span><span class="p">()</span>
-<span class="n">fdev</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">vec</span><span class="o">.</span><span class="n">CreateDeviceVector</span><span class="p">(</span><span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">adev</span>   <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">mat</span><span class="o">.</span><span class="n">CreateDeviceMatrix</span><span class="p">()</span>       <span class="c1"># move matrix to GPU</span>
+<span class="n">jacdev</span> <span class="o">=</span> <span class="n">jac</span><span class="o">.</span><span class="n">CreateDeviceMatrix</span><span class="p">()</span>         <span class="c1"># move preconditioner to GPU</span>
+<span class="n">fdev</span>   <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">vec</span><span class="o">.</span><span class="n">CreateDeviceVector</span><span class="p">(</span><span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-<span class="c1"># DevCGSolver — same interface as CGSolver  ← new</span>
 <span class="n">gpu_solver</span> <span class="o">=</span> <span class="n">ngscuda</span><span class="o">.</span><span class="n">DevCGSolver</span><span class="p">(</span>
-    <span class="n">mat</span><span class="o">=</span><span class="n">adev</span><span class="p">,</span> <span class="n">pre</span><span class="o">=</span><span class="n">pdev</span><span class="p">,</span>
-    <span class="n">adev_raw</span><span class="o">=</span><span class="n">adev</span><span class="p">,</span> <span class="n">cdev_raw</span><span class="o">=</span><span class="n">pdev</span><span class="p">,</span>
-    <span class="n">precision</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">,</span> <span class="n">maxsteps</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">printrates</span><span class="o">=</span><span class="kc">False</span>
+    <span class="n">mat</span><span class="o">=</span><span class="n">adev</span><span class="p">,</span> <span class="n">pre</span><span class="o">=</span><span class="n">jacdev</span><span class="p">,</span>
+    <span class="n">adev_raw</span><span class="o">=</span><span class="n">adev</span><span class="p">,</span> <span class="n">cdev_raw</span><span class="o">=</span><span class="n">jacdev</span><span class="p">,</span>
+    <span class="n">maxsteps</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span> <span class="n">printrates</span><span class="o">=</span><span class="kc">False</span>
 <span class="p">)</span>
 
-<span class="n">gpu_ms</span> <span class="o">=</span> <span class="n">timed</span><span class="p">(</span><span class="n">gpu_solver</span><span class="p">,</span> <span class="n">fdev</span><span class="p">,</span> <span class="n">gfu</span><span class="o">.</span><span class="n">vec</span><span class="p">)</span>
-<span class="n">err</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">Norm</span><span class="p">(</span><span class="n">gfu</span><span class="o">.</span><span class="n">vec</span><span class="p">)</span> <span class="o">-</span> <span class="n">ref_norm</span><span class="p">)</span>
+<span class="n">gfu</span><span class="o">.</span><span class="n">vec</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="n">gpu_solver</span> <span class="o">*</span> <span class="n">fdev</span><span class="p">)</span><span class="o">.</span><span class="n">Evaluate</span><span class="p">()</span>   <span class="c1"># warm-up</span>
+<span class="n">ts</span> <span class="o">=</span> <span class="n">perf_counter</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span> <span class="n">gfu</span><span class="o">.</span><span class="n">vec</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="n">gpu_solver</span> <span class="o">*</span> <span class="n">fdev</span><span class="p">)</span><span class="o">.</span><span class="n">Evaluate</span><span class="p">()</span>
+<span class="n">gpu_ms</span> <span class="o">=</span> <span class="p">(</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">ts</span><span class="p">)</span> <span class="o">/</span> <span class="mi">5</span> <span class="o">*</span> <span class="mi">1000</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;GPU CG:  </span><span class="si">{</span><span class="n">gpu_ms</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> ms   |sol| = </span><span class="si">{</span><span class="n">Norm</span><span class="p">(</span><span class="n">gfu</span><span class="o">.</span><span class="n">vec</span><span class="p">)</span><span class="si">:</span><span class="s2">.6e</span><span class="si">}</span><span class="s2">   err vs CPU = </span><span class="si">{</span><span class="n">err</span><span class="si">:</span><span class="s2">.1e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">err</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">Norm</span><span class="p">(</span><span class="n">gfu</span><span class="o">.</span><span class="n">vec</span><span class="p">)</span> <span class="o">-</span> <span class="n">ref_norm</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;GPU CG:  </span><span class="si">{</span><span class="n">gpu_ms</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> ms   |sol| = </span><span class="si">{</span><span class="n">Norm</span><span class="p">(</span><span class="n">gfu</span><span class="o">.</span><span class="n">vec</span><span class="p">)</span><span class="si">:</span><span class="s2">.6e</span><span class="si">}</span><span class="s2">   err = </span><span class="si">{</span><span class="n">err</span><span class="si">:</span><span class="s2">.1e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Speedup: </span><span class="si">{</span><span class="n">cpu_ms</span><span class="o">/</span><span class="n">gpu_ms</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">x&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -593,38 +589,48 @@ document.write(`
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The solver automatically selects the best available GPU execution mode:
-<strong>WHILE graph</strong> (CUDA ≥ 12.3) → <strong>per-iteration graph</strong> → <strong>no-graph fallback</strong>.
-No configuration needed.</p>
+<p><code class="docutils literal notranslate"><span class="pre">DevCGSolver</span></code> automatically selects the best available GPU execution mode:</p>
+<ul class="simple">
+<li><p><strong>WHILE graph</strong> (CUDA ≥ 12.3) — entire convergence loop on device, zero per-iteration host–device sync</p></li>
+<li><p><strong>per-iteration graph</strong> — fallback for older CUDA</p></li>
+<li><p><strong>no-graph</strong> — set <code class="docutils literal notranslate"><span class="pre">NO_CUDA_GRAPH=1</span></code> to disable graph capture</p></li>
+</ul>
+<p>No configuration required from the user.</p>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Speedup across problem sizes</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Scaling with problem size</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;ndof&#39;</span><span class="si">:</span><span class="s2">&gt;8</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="s1">&#39;CPU (ms)&#39;</span><span class="si">:</span><span class="s2">&gt;10</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="s1">&#39;GPU (ms)&#39;</span><span class="si">:</span><span class="s2">&gt;10</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="s1">&#39;speedup&#39;</span><span class="si">:</span><span class="s2">&gt;8</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">42</span><span class="p">)</span>
 
-<span class="k">for</span> <span class="n">maxh</span> <span class="ow">in</span> <span class="p">[</span><span class="mf">0.15</span><span class="p">,</span> <span class="mf">0.10</span><span class="p">,</span> <span class="mf">0.08</span><span class="p">,</span> <span class="mf">0.06</span><span class="p">,</span> <span class="mf">0.04</span><span class="p">]:</span>
-    <span class="n">m</span>  <span class="o">=</span> <span class="n">Mesh</span><span class="p">(</span><span class="n">unit_cube</span><span class="o">.</span><span class="n">GenerateMesh</span><span class="p">(</span><span class="n">maxh</span><span class="o">=</span><span class="n">maxh</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">nref</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">]:</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">Mesh</span><span class="p">(</span><span class="n">unit_square</span><span class="o">.</span><span class="n">GenerateMesh</span><span class="p">(</span><span class="n">maxh</span><span class="o">=</span><span class="mf">0.1</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nref</span><span class="p">):</span> <span class="n">m</span><span class="o">.</span><span class="n">Refine</span><span class="p">()</span>
     <span class="n">fs</span> <span class="o">=</span> <span class="n">H1</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">dirichlet</span><span class="o">=</span><span class="s2">&quot;.*&quot;</span><span class="p">)</span>
     <span class="n">uu</span><span class="p">,</span> <span class="n">vv</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">TnT</span><span class="p">()</span>
-    <span class="n">aa</span> <span class="o">=</span> <span class="n">BilinearForm</span><span class="p">(</span><span class="n">grad</span><span class="p">(</span><span class="n">uu</span><span class="p">)</span><span class="o">*</span><span class="n">grad</span><span class="p">(</span><span class="n">vv</span><span class="p">)</span><span class="o">*</span><span class="n">dx</span><span class="p">)</span><span class="o">.</span><span class="n">Assemble</span><span class="p">()</span>
-    <span class="n">ff</span> <span class="o">=</span> <span class="n">LinearForm</span><span class="p">(</span><span class="n">x</span><span class="o">*</span><span class="n">y</span><span class="o">*</span><span class="n">z</span><span class="o">*</span><span class="n">vv</span><span class="o">*</span><span class="n">dx</span><span class="p">)</span><span class="o">.</span><span class="n">Assemble</span><span class="p">()</span>
-    <span class="n">pr</span> <span class="o">=</span> <span class="n">Projector</span><span class="p">(</span><span class="n">fs</span><span class="o">.</span><span class="n">FreeDofs</span><span class="p">(),</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">TaskManager</span><span class="p">():</span>
+        <span class="n">aa</span> <span class="o">=</span> <span class="n">BilinearForm</span><span class="p">(</span><span class="n">grad</span><span class="p">(</span><span class="n">uu</span><span class="p">)</span><span class="o">*</span><span class="n">grad</span><span class="p">(</span><span class="n">vv</span><span class="p">)</span><span class="o">*</span><span class="n">dx</span> <span class="o">+</span> <span class="n">uu</span><span class="o">*</span><span class="n">vv</span><span class="o">*</span><span class="n">dx</span><span class="p">)</span><span class="o">.</span><span class="n">Assemble</span><span class="p">()</span>
+        <span class="n">ff</span> <span class="o">=</span> <span class="n">LinearForm</span><span class="p">(</span><span class="n">x</span><span class="o">*</span><span class="n">vv</span><span class="o">*</span><span class="n">dx</span><span class="p">)</span><span class="o">.</span><span class="n">Assemble</span><span class="p">()</span>
+    <span class="n">jj</span> <span class="o">=</span> <span class="n">aa</span><span class="o">.</span><span class="n">mat</span><span class="o">.</span><span class="n">CreateSmoother</span><span class="p">(</span><span class="n">fs</span><span class="o">.</span><span class="n">FreeDofs</span><span class="p">())</span>
+    <span class="n">gf</span> <span class="o">=</span> <span class="n">GridFunction</span><span class="p">(</span><span class="n">fs</span><span class="p">)</span>
 
-    <span class="n">cs</span> <span class="o">=</span> <span class="n">la</span><span class="o">.</span><span class="n">CGSolver</span><span class="p">(</span><span class="n">mat</span><span class="o">=</span><span class="n">aa</span><span class="o">.</span><span class="n">mat</span><span class="p">,</span> <span class="n">pre</span><span class="o">=</span><span class="n">pr</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">,</span> <span class="n">maxsteps</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">printrates</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
-    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span> <span class="n">_</span> <span class="o">=</span> <span class="n">cs</span> <span class="o">*</span> <span class="n">ff</span><span class="o">.</span><span class="n">vec</span>
-    <span class="n">c_ms</span> <span class="o">=</span> <span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span><span class="o">-</span><span class="n">t0</span><span class="p">)</span><span class="o">/</span><span class="mi">3</span><span class="o">*</span><span class="mi">1000</span>
+    <span class="n">cs</span> <span class="o">=</span> <span class="n">la</span><span class="o">.</span><span class="n">CGSolver</span><span class="p">(</span><span class="n">mat</span><span class="o">=</span><span class="n">aa</span><span class="o">.</span><span class="n">mat</span><span class="p">,</span> <span class="n">pre</span><span class="o">=</span><span class="n">jj</span><span class="p">,</span> <span class="n">maxsteps</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span> <span class="n">printrates</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">gf</span><span class="o">.</span><span class="n">vec</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">cs</span> <span class="o">*</span> <span class="n">ff</span><span class="o">.</span><span class="n">vec</span>
+    <span class="n">ts</span> <span class="o">=</span> <span class="n">perf_counter</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span> <span class="n">gf</span><span class="o">.</span><span class="n">vec</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">cs</span> <span class="o">*</span> <span class="n">ff</span><span class="o">.</span><span class="n">vec</span>
+    <span class="n">c_ms</span> <span class="o">=</span> <span class="p">(</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">ts</span><span class="p">)</span> <span class="o">/</span> <span class="mi">3</span> <span class="o">*</span> <span class="mi">1000</span>
 
     <span class="n">ad</span> <span class="o">=</span> <span class="n">aa</span><span class="o">.</span><span class="n">mat</span><span class="o">.</span><span class="n">CreateDeviceMatrix</span><span class="p">()</span>
-    <span class="n">pd</span> <span class="o">=</span> <span class="n">pr</span><span class="o">.</span><span class="n">CreateDeviceMatrix</span><span class="p">()</span>
+    <span class="n">jd</span> <span class="o">=</span> <span class="n">jj</span><span class="o">.</span><span class="n">CreateDeviceMatrix</span><span class="p">()</span>
     <span class="n">fd</span> <span class="o">=</span> <span class="n">ff</span><span class="o">.</span><span class="n">vec</span><span class="o">.</span><span class="n">CreateDeviceVector</span><span class="p">(</span><span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">gf</span> <span class="o">=</span> <span class="n">GridFunction</span><span class="p">(</span><span class="n">fs</span><span class="p">)</span>
-    <span class="n">gs</span> <span class="o">=</span> <span class="n">ngscuda</span><span class="o">.</span><span class="n">DevCGSolver</span><span class="p">(</span><span class="n">mat</span><span class="o">=</span><span class="n">ad</span><span class="p">,</span> <span class="n">pre</span><span class="o">=</span><span class="n">pd</span><span class="p">,</span> <span class="n">adev_raw</span><span class="o">=</span><span class="n">ad</span><span class="p">,</span> <span class="n">cdev_raw</span><span class="o">=</span><span class="n">pd</span><span class="p">,</span>
-                              <span class="n">precision</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">,</span> <span class="n">maxsteps</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">printrates</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="n">g_ms</span> <span class="o">=</span> <span class="n">timed</span><span class="p">(</span><span class="n">gs</span><span class="p">,</span> <span class="n">fd</span><span class="p">,</span> <span class="n">gf</span><span class="o">.</span><span class="n">vec</span><span class="p">,</span> <span class="n">runs</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">gs</span> <span class="o">=</span> <span class="n">ngscuda</span><span class="o">.</span><span class="n">DevCGSolver</span><span class="p">(</span><span class="n">mat</span><span class="o">=</span><span class="n">ad</span><span class="p">,</span> <span class="n">pre</span><span class="o">=</span><span class="n">jd</span><span class="p">,</span> <span class="n">adev_raw</span><span class="o">=</span><span class="n">ad</span><span class="p">,</span> <span class="n">cdev_raw</span><span class="o">=</span><span class="n">jd</span><span class="p">,</span>
+                              <span class="n">maxsteps</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span> <span class="n">printrates</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">gf</span><span class="o">.</span><span class="n">vec</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="n">gs</span> <span class="o">*</span> <span class="n">fd</span><span class="p">)</span><span class="o">.</span><span class="n">Evaluate</span><span class="p">()</span>
+    <span class="n">ts</span> <span class="o">=</span> <span class="n">perf_counter</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span> <span class="n">gf</span><span class="o">.</span><span class="n">vec</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="n">gs</span> <span class="o">*</span> <span class="n">fd</span><span class="p">)</span><span class="o">.</span><span class="n">Evaluate</span><span class="p">()</span>
+    <span class="n">g_ms</span> <span class="o">=</span> <span class="p">(</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">ts</span><span class="p">)</span> <span class="o">/</span> <span class="mi">3</span> <span class="o">*</span> <span class="mi">1000</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fs</span><span class="o">.</span><span class="n">ndof</span><span class="si">:</span><span class="s2">&gt;8</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">c_ms</span><span class="si">:</span><span class="s2">&gt;10.1f</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">g_ms</span><span class="si">:</span><span class="s2">&gt;10.1f</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">c_ms</span><span class="o">/</span><span class="n">g_ms</span><span class="si">:</span><span class="s2">&gt;7.2f</span><span class="si">}</span><span class="s2">x&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fs</span><span class="o">.</span><span class="n">ndof</span><span class="si">:</span><span class="s2">&gt;8</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">c_ms</span><span class="si">:</span><span class="s2">&gt;10.0f</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">g_ms</span><span class="si">:</span><span class="s2">&gt;10.0f</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">c_ms</span><span class="o">/</span><span class="n">g_ms</span><span class="si">:</span><span class="s2">&gt;7.2f</span><span class="si">}</span><span class="s2">x&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -635,21 +641,25 @@ No configuration needed.</p>
 <section id="part-2-non-symmetric-problem-convection-diffusion">
 <h2>Part 2: Non-symmetric problem — convection-diffusion<a class="headerlink" href="#part-2-non-symmetric-problem-convection-diffusion" title="Link to this heading">#</a></h2>
 <div class="math notranslate nohighlight">
-\[-\Delta u + \mathbf{b} \cdot \nabla u = f\]</div>
-<p>The transport term makes the stiffness matrix <strong>non-symmetric</strong>.
-CG does not apply — we use <strong>TFQMR</strong> (Transpose-Free QMR), which handles non-symmetric
-systems without storing a growing Krylov basis. This is the relevant solver for
+\[-\varepsilon\,\Delta u + \mathbf{b} \cdot \nabla u = f\]</div>
+<p>The convection term makes the stiffness matrix <strong>non-symmetric</strong> — CG does not apply.
+<strong>TFQMR</strong> (Transpose-Free QMR) handles non-symmetric systems without storing a growing
+Krylov basis, making it suitable for large problems. This is the relevant solver for
 <strong>Navier–Stokes</strong> linearizations.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mesh2</span> <span class="o">=</span> <span class="n">Mesh</span><span class="p">(</span><span class="n">unit_square</span><span class="o">.</span><span class="n">GenerateMesh</span><span class="p">(</span><span class="n">maxh</span><span class="o">=</span><span class="mf">0.01</span><span class="p">))</span>
-<span class="n">fes2</span>  <span class="o">=</span> <span class="n">H1</span><span class="p">(</span><span class="n">mesh2</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dirichlet</span><span class="o">=</span><span class="s2">&quot;.*&quot;</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mesh2</span> <span class="o">=</span> <span class="n">Mesh</span><span class="p">(</span><span class="n">unit_square</span><span class="o">.</span><span class="n">GenerateMesh</span><span class="p">(</span><span class="n">maxh</span><span class="o">=</span><span class="mf">0.02</span><span class="p">))</span>
+<span class="n">fes2</span>  <span class="o">=</span> <span class="n">H1</span><span class="p">(</span><span class="n">mesh2</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">dirichlet</span><span class="o">=</span><span class="s2">&quot;.*&quot;</span><span class="p">)</span>
 <span class="n">u2</span><span class="p">,</span> <span class="n">v2</span> <span class="o">=</span> <span class="n">fes2</span><span class="o">.</span><span class="n">TnT</span><span class="p">()</span>
-<span class="n">b</span> <span class="o">=</span> <span class="n">CoefficientFunction</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
 
-<span class="n">a2</span> <span class="o">=</span> <span class="n">BilinearForm</span><span class="p">(</span><span class="n">grad</span><span class="p">(</span><span class="n">u2</span><span class="p">)</span><span class="o">*</span><span class="n">grad</span><span class="p">(</span><span class="n">v2</span><span class="p">)</span><span class="o">*</span><span class="n">dx</span> <span class="o">+</span> <span class="n">b</span><span class="o">*</span><span class="n">grad</span><span class="p">(</span><span class="n">u2</span><span class="p">)</span><span class="o">*</span><span class="n">v2</span><span class="o">*</span><span class="n">dx</span><span class="p">)</span><span class="o">.</span><span class="n">Assemble</span><span class="p">()</span>
-<span class="n">f2</span> <span class="o">=</span> <span class="n">LinearForm</span><span class="p">(</span><span class="n">v2</span><span class="o">*</span><span class="n">dx</span><span class="p">)</span><span class="o">.</span><span class="n">Assemble</span><span class="p">()</span>
+<span class="n">eps</span> <span class="o">=</span> <span class="mf">1e-3</span>
+<span class="n">b</span>   <span class="o">=</span> <span class="n">CF</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+<span class="k">with</span> <span class="n">TaskManager</span><span class="p">():</span>
+    <span class="n">a2</span> <span class="o">=</span> <span class="n">BilinearForm</span><span class="p">(</span><span class="n">eps</span><span class="o">*</span><span class="n">grad</span><span class="p">(</span><span class="n">u2</span><span class="p">)</span><span class="o">*</span><span class="n">grad</span><span class="p">(</span><span class="n">v2</span><span class="p">)</span><span class="o">*</span><span class="n">dx</span> <span class="o">+</span> <span class="n">b</span><span class="o">*</span><span class="n">grad</span><span class="p">(</span><span class="n">u2</span><span class="p">)</span><span class="o">*</span><span class="n">v2</span><span class="o">*</span><span class="n">dx</span><span class="p">)</span><span class="o">.</span><span class="n">Assemble</span><span class="p">()</span>
+    <span class="n">f2</span> <span class="o">=</span> <span class="n">LinearForm</span><span class="p">(</span><span class="mi">1</span><span class="o">*</span><span class="n">v2</span><span class="o">*</span><span class="n">dx</span><span class="p">)</span><span class="o">.</span><span class="n">Assemble</span><span class="p">()</span>
+
 <span class="n">gfu2</span> <span class="o">=</span> <span class="n">GridFunction</span><span class="p">(</span><span class="n">fes2</span><span class="p">)</span>
+<span class="n">jac2</span> <span class="o">=</span> <span class="n">a2</span><span class="o">.</span><span class="n">mat</span><span class="o">.</span><span class="n">CreateSmoother</span><span class="p">(</span><span class="n">fes2</span><span class="o">.</span><span class="n">FreeDofs</span><span class="p">())</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ndof = </span><span class="si">{</span><span class="n">fes2</span><span class="o">.</span><span class="n">ndof</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
@@ -661,17 +671,17 @@ systems without storing a growing Krylov basis. This is the relevant solver for
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># CPU TFQMR reference</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">ngsolve.krylovspace</span><span class="w"> </span><span class="kn">import</span> <span class="n">TFQMR</span>
 
-<span class="n">pre2</span>  <span class="o">=</span> <span class="n">a2</span><span class="o">.</span><span class="n">mat</span><span class="o">.</span><span class="n">CreateSmoother</span><span class="p">(</span><span class="n">fes2</span><span class="o">.</span><span class="n">FreeDofs</span><span class="p">())</span>
-<span class="n">pre2p</span> <span class="o">=</span> <span class="n">Projector</span><span class="p">(</span><span class="n">fes2</span><span class="o">.</span><span class="n">FreeDofs</span><span class="p">(),</span> <span class="kc">True</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">TaskManager</span><span class="p">():</span>
+    <span class="n">gfu2</span><span class="o">.</span><span class="n">vec</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">TFQMR</span><span class="p">(</span><span class="n">mat</span><span class="o">=</span><span class="n">a2</span><span class="o">.</span><span class="n">mat</span><span class="p">,</span> <span class="n">pre</span><span class="o">=</span><span class="n">jac2</span><span class="p">,</span> <span class="n">rhs</span><span class="o">=</span><span class="n">f2</span><span class="o">.</span><span class="n">vec</span><span class="p">,</span>
+                           <span class="n">maxsteps</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span> <span class="n">printrates</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">)</span>
+    <span class="n">ts</span> <span class="o">=</span> <span class="n">perf_counter</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+        <span class="n">gfu2</span><span class="o">.</span><span class="n">vec</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">TFQMR</span><span class="p">(</span><span class="n">mat</span><span class="o">=</span><span class="n">a2</span><span class="o">.</span><span class="n">mat</span><span class="p">,</span> <span class="n">pre</span><span class="o">=</span><span class="n">jac2</span><span class="p">,</span> <span class="n">rhs</span><span class="o">=</span><span class="n">f2</span><span class="o">.</span><span class="n">vec</span><span class="p">,</span>
+                               <span class="n">maxsteps</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span> <span class="n">printrates</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">)</span>
+    <span class="n">cpu2_ms</span> <span class="o">=</span> <span class="p">(</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">ts</span><span class="p">)</span> <span class="o">/</span> <span class="mi">3</span> <span class="o">*</span> <span class="mi">1000</span>
 
-<span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
-<span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
-    <span class="n">gfu2</span><span class="o">.</span><span class="n">vec</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">TFQMR</span><span class="p">(</span><span class="n">mat</span><span class="o">=</span><span class="n">pre2</span><span class="nd">@a2</span><span class="o">.</span><span class="n">mat</span><span class="p">,</span> <span class="n">pre</span><span class="o">=</span><span class="n">pre2p</span><span class="p">,</span>
-                           <span class="n">rhs</span><span class="o">=</span><span class="p">(</span><span class="n">pre2</span><span class="o">*</span><span class="n">f2</span><span class="o">.</span><span class="n">vec</span><span class="p">)</span><span class="o">.</span><span class="n">Evaluate</span><span class="p">(),</span>
-                           <span class="n">maxsteps</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">printrates</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">)</span>
-<span class="n">cpu2_ms</span> <span class="o">=</span> <span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span><span class="o">-</span><span class="n">t0</span><span class="p">)</span><span class="o">/</span><span class="mi">5</span><span class="o">*</span><span class="mi">1000</span>
 <span class="n">ref_norm2</span> <span class="o">=</span> <span class="n">Norm</span><span class="p">(</span><span class="n">gfu2</span><span class="o">.</span><span class="n">vec</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;CPU TFQMR: </span><span class="si">{</span><span class="n">cpu2_ms</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> ms   |sol| = </span><span class="si">{</span><span class="n">ref_norm2</span><span class="si">:</span><span class="s2">.6e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;CPU TFQMR: </span><span class="si">{</span><span class="n">cpu2_ms</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> ms   |sol| = </span><span class="si">{</span><span class="n">ref_norm2</span><span class="si">:</span><span class="s2">.6e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -680,24 +690,23 @@ systems without storing a growing Krylov basis. This is the relevant solver for
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># GPU DevTFQMRSolver</span>
 <span class="n">adev2</span>  <span class="o">=</span> <span class="n">a2</span><span class="o">.</span><span class="n">mat</span><span class="o">.</span><span class="n">CreateDeviceMatrix</span><span class="p">()</span>
-<span class="n">pdev2</span>  <span class="o">=</span> <span class="n">pre2</span><span class="o">.</span><span class="n">CreateDeviceMatrix</span><span class="p">()</span>
-<span class="n">pdev2p</span> <span class="o">=</span> <span class="n">pre2p</span><span class="o">.</span><span class="n">CreateDeviceMatrix</span><span class="p">()</span>
+<span class="n">jdev2</span>  <span class="o">=</span> <span class="n">jac2</span><span class="o">.</span><span class="n">CreateDeviceMatrix</span><span class="p">()</span>
 <span class="n">fdev2</span>  <span class="o">=</span> <span class="n">f2</span><span class="o">.</span><span class="n">vec</span><span class="o">.</span><span class="n">CreateDeviceVector</span><span class="p">(</span><span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-<span class="n">pa_dev2</span>  <span class="o">=</span> <span class="n">pdev2</span> <span class="o">@</span> <span class="n">adev2</span>                  <span class="c1"># preconditioned system on device</span>
-<span class="n">rhs_pre2</span> <span class="o">=</span> <span class="p">(</span><span class="n">pdev2</span> <span class="o">*</span> <span class="n">fdev2</span><span class="p">)</span><span class="o">.</span><span class="n">Evaluate</span><span class="p">()</span>     <span class="c1"># preconditioned rhs on device</span>
-
 <span class="n">tfqmr_solver</span> <span class="o">=</span> <span class="n">ngscuda</span><span class="o">.</span><span class="n">DevTFQMRSolver</span><span class="p">(</span>
-    <span class="n">mat</span><span class="o">=</span><span class="n">pre2</span><span class="nd">@a2</span><span class="o">.</span><span class="n">mat</span><span class="p">,</span> <span class="n">pre</span><span class="o">=</span><span class="n">pre2p</span><span class="p">,</span>           <span class="c1"># CPU forms for solver setup</span>
-    <span class="n">adev_raw</span><span class="o">=</span><span class="n">pa_dev2</span><span class="p">,</span> <span class="n">cdev_raw</span><span class="o">=</span><span class="n">pdev2p</span><span class="p">,</span>    <span class="c1"># GPU operators for execution</span>
-    <span class="n">precision</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">,</span> <span class="n">maxsteps</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">printrates</span><span class="o">=</span><span class="kc">False</span>
+    <span class="n">mat</span><span class="o">=</span><span class="n">adev2</span><span class="p">,</span> <span class="n">pre</span><span class="o">=</span><span class="n">jdev2</span><span class="p">,</span>
+    <span class="n">adev_raw</span><span class="o">=</span><span class="n">adev2</span><span class="p">,</span> <span class="n">cdev_raw</span><span class="o">=</span><span class="n">jdev2</span><span class="p">,</span>
+    <span class="n">maxsteps</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span> <span class="n">printrates</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mf">1e-8</span>
 <span class="p">)</span>
 
-<span class="n">gpu2_ms</span> <span class="o">=</span> <span class="n">timed</span><span class="p">(</span><span class="n">tfqmr_solver</span><span class="p">,</span> <span class="n">rhs_pre2</span><span class="p">,</span> <span class="n">gfu2</span><span class="o">.</span><span class="n">vec</span><span class="p">)</span>
-<span class="n">err2</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">Norm</span><span class="p">(</span><span class="n">gfu2</span><span class="o">.</span><span class="n">vec</span><span class="p">)</span> <span class="o">-</span> <span class="n">ref_norm2</span><span class="p">)</span>
+<span class="n">tfqmr_solver</span><span class="o">.</span><span class="n">Mult</span><span class="p">(</span><span class="n">fdev2</span><span class="p">,</span> <span class="n">gfu2</span><span class="o">.</span><span class="n">vec</span><span class="p">)</span>   <span class="c1"># warm-up</span>
+<span class="n">ts</span> <span class="o">=</span> <span class="n">perf_counter</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span> <span class="n">tfqmr_solver</span><span class="o">.</span><span class="n">Mult</span><span class="p">(</span><span class="n">fdev2</span><span class="p">,</span> <span class="n">gfu2</span><span class="o">.</span><span class="n">vec</span><span class="p">)</span>
+<span class="n">gpu2_ms</span> <span class="o">=</span> <span class="p">(</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">ts</span><span class="p">)</span> <span class="o">/</span> <span class="mi">3</span> <span class="o">*</span> <span class="mi">1000</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;GPU TFQMR: </span><span class="si">{</span><span class="n">gpu2_ms</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> ms   |sol| = </span><span class="si">{</span><span class="n">Norm</span><span class="p">(</span><span class="n">gfu2</span><span class="o">.</span><span class="n">vec</span><span class="p">)</span><span class="si">:</span><span class="s2">.6e</span><span class="si">}</span><span class="s2">   err vs CPU = </span><span class="si">{</span><span class="n">err2</span><span class="si">:</span><span class="s2">.1e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Speedup over CPU: </span><span class="si">{</span><span class="n">cpu2_ms</span><span class="o">/</span><span class="n">gpu2_ms</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">x&quot;</span><span class="p">)</span>
+<span class="n">err2</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">Norm</span><span class="p">(</span><span class="n">gfu2</span><span class="o">.</span><span class="n">vec</span><span class="p">)</span> <span class="o">-</span> <span class="n">ref_norm2</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;GPU TFQMR: </span><span class="si">{</span><span class="n">gpu2_ms</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> ms   |sol| = </span><span class="si">{</span><span class="n">Norm</span><span class="p">(</span><span class="n">gfu2</span><span class="o">.</span><span class="n">vec</span><span class="p">)</span><span class="si">:</span><span class="s2">.6e</span><span class="si">}</span><span class="s2">   err = </span><span class="si">{</span><span class="n">err2</span><span class="si">:</span><span class="s2">.1e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Speedup:   </span><span class="si">{</span><span class="n">cpu2_ms</span><span class="o">/</span><span class="n">gpu2_ms</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">x&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -725,17 +734,17 @@ systems without storing a growing Krylov basis. This is the relevant solver for
 </tbody>
 </table>
 </div>
-<p>Both solvers require no CUDA knowledge, produce numerically identical results to
-their CPU counterparts, and automatically select the best GPU execution strategy.</p>
-<p><strong>Minimal changes to an existing script:</strong></p>
+<p>Both solvers require no CUDA knowledge, produce numerically identical results to CPU
+counterparts, and automatically select the best GPU execution strategy.</p>
+<p><strong>Minimal changes to an existing NGSolve script:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">ngsolve.ngscuda</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ngscuda</span>
 
-<span class="n">adev</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">mat</span><span class="o">.</span><span class="n">CreateDeviceMatrix</span><span class="p">()</span>   <span class="c1"># ← add</span>
-<span class="n">pdev</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">CreateDeviceMatrix</span><span class="p">()</span>     <span class="c1"># ← add</span>
+<span class="n">adev</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">mat</span><span class="o">.</span><span class="n">CreateDeviceMatrix</span><span class="p">()</span>
+<span class="n">jdev</span> <span class="o">=</span> <span class="n">jac</span><span class="o">.</span><span class="n">CreateDeviceMatrix</span><span class="p">()</span>    
 
-<span class="n">solver</span> <span class="o">=</span> <span class="n">ngscuda</span><span class="o">.</span><span class="n">DevCGSolver</span><span class="p">(</span><span class="n">mat</span><span class="o">=</span><span class="n">adev</span><span class="p">,</span> <span class="n">pre</span><span class="o">=</span><span class="n">pdev</span><span class="p">,</span> <span class="n">adev_raw</span><span class="o">=</span><span class="n">adev</span><span class="p">,</span> <span class="n">cdev_raw</span><span class="o">=</span><span class="n">pdev</span><span class="p">,</span>
-                              <span class="n">precision</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">,</span> <span class="n">maxsteps</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
-<span class="n">solver</span><span class="o">.</span><span class="n">Mult</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">vec</span><span class="o">.</span><span class="n">CreateDeviceVector</span><span class="p">(</span><span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">gfu</span><span class="o">.</span><span class="n">vec</span><span class="p">)</span>
+<span class="n">solver</span> <span class="o">=</span> <span class="n">ngscuda</span><span class="o">.</span><span class="n">DevCGSolver</span><span class="p">(</span><span class="n">mat</span><span class="o">=</span><span class="n">adev</span><span class="p">,</span> <span class="n">pre</span><span class="o">=</span><span class="n">jdev</span><span class="p">,</span> <span class="n">adev_raw</span><span class="o">=</span><span class="n">adev</span><span class="p">,</span> <span class="n">cdev_raw</span><span class="o">=</span><span class="n">jdev</span><span class="p">,</span>
+                              <span class="n">maxsteps</span><span class="o">=</span><span class="mi">2000</span><span class="p">)</span>
+<span class="n">gfu</span><span class="o">.</span><span class="n">vec</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="n">solver</span> <span class="o">*</span> <span class="n">f</span><span class="o">.</span><span class="n">vec</span><span class="o">.</span><span class="n">CreateDeviceVector</span><span class="p">(</span><span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span><span class="o">.</span><span class="n">Evaluate</span><span class="p">()</span>
 </pre></div>
 </div>
 </section>
@@ -797,7 +806,7 @@ their CPU counterparts, and automatically select the best GPU execution strategy
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#part-1-symmetric-problem-poisson-equation">Part 1: Symmetric problem — Poisson equation</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#moving-to-gpu-two-extra-lines">Moving to GPU — two extra lines</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#gpu-acceleration">GPU acceleration</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#part-2-non-symmetric-problem-convection-diffusion">Part 2: Non-symmetric problem — convection-diffusion</a></li>

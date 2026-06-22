@@ -28,26 +28,26 @@ Traceback (most recent call last):
     raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
 nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
 ------------------
-# Check GPU is available
+# Check GPU availability
 import subprocess
 result = subprocess.run(['nvidia-smi', '--query-gpu=name,memory.total', '--format=csv,noheader'],
                         capture_output=True, text=True)
 if result.returncode == 0:
-    print("GPU found:", result.stdout.strip())
+    print('GPU found:', result.stdout.strip())
 else:
-    print("No GPU detected — please switch to a GPU runtime (Runtime → Change runtime type → T4 GPU)")
+    print('No GPU detected — please switch to a GPU runtime.')
 ------------------
 
 
 [31m---------------------------------------------------------------------------[39m
 [31mFileNotFoundError[39m                         Traceback (most recent call last)
 [36mCell[39m[36m [39m[32mIn[2][39m[32m, line 3[39m
-[32m      1[39m [38;5;66;03m# Check GPU is available[39;00m
+[32m      1[39m [38;5;66;03m# Check GPU availability[39;00m
 [32m      2[39m [38;5;28;01mimport[39;00m[38;5;250m [39m[34;01msubprocess[39;00m
 [32m----> [39m[32m3[39m result = [43msubprocess[49m[43m.[49m[43mrun[49m[43m([49m[43m[[49m[33;43m'[39;49m[33;43mnvidia-smi[39;49m[33;43m'[39;49m[43m,[49m[43m [49m[33;43m'[39;49m[33;43m--query-gpu=name,memory.total[39;49m[33;43m'[39;49m[43m,[49m[43m [49m[33;43m'[39;49m[33;43m--format=csv,noheader[39;49m[33;43m'[39;49m[43m][49m[43m,[49m
 [32m      4[39m [43m                        [49m[43mcapture_output[49m[43m=[49m[38;5;28;43;01mTrue[39;49;00m[43m,[49m[43m [49m[43mtext[49m[43m=[49m[38;5;28;43;01mTrue[39;49;00m[43m)[49m
 [32m      5[39m [38;5;28;01mif[39;00m result.returncode == [32m0[39m:
-[32m      6[39m     [38;5;28mprint[39m([33m"[39m[33mGPU found:[39m[33m"[39m, result.stdout.strip())
+[32m      6[39m     [38;5;28mprint[39m([33m'[39m[33mGPU found:[39m[33m'[39m, result.stdout.strip())
 
 [36mFile [39m[32m/opt/homebrew/Cellar/python@3.14/3.14.0_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py:554[39m, in [36mrun[39m[34m(input, capture_output, timeout, check, *popenargs, **kwargs)[39m
 [32m    551[39m     kwargs[[33m'[39m[33mstdout[39m[33m'[39m] = PIPE

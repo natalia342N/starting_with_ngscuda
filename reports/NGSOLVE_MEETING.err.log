@@ -28,7 +28,7 @@ Traceback (most recent call last):
     raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
 nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
 ------------------
-# Check GPU is available
+# Check GPU availability
 import subprocess
 result = subprocess.run(['nvidia-smi', '--query-gpu=name,memory.total', '--format=csv,noheader'],
                         capture_output=True, text=True)
@@ -42,7 +42,7 @@ else:
 [31m---------------------------------------------------------------------------[39m
 [31mFileNotFoundError[39m                         Traceback (most recent call last)
 [36mCell[39m[36m [39m[32mIn[2][39m[32m, line 3[39m
-[32m      1[39m [38;5;66;03m# Check GPU is available[39;00m
+[32m      1[39m [38;5;66;03m# Check GPU availability[39;00m
 [32m      2[39m [38;5;28;01mimport[39;00m[38;5;250m [39m[34;01msubprocess[39;00m
 [32m----> [39m[32m3[39m result = [43msubprocess[49m[43m.[49m[43mrun[49m[43m([49m[43m[[49m[33;43m'[39;49m[33;43mnvidia-smi[39;49m[33;43m'[39;49m[43m,[49m[43m [49m[33;43m'[39;49m[33;43m--query-gpu=name,memory.total[39;49m[33;43m'[39;49m[43m,[49m[43m [49m[33;43m'[39;49m[33;43m--format=csv,noheader[39;49m[33;43m'[39;49m[43m][49m[43m,[49m
 [32m      4[39m [43m                        [49m[43mcapture_output[49m[43m=[49m[38;5;28;43;01mTrue[39;49;00m[43m,[49m[43m [49m[43mtext[49m[43m=[49m[38;5;28;43;01mTrue[39;49;00m[43m)[49m

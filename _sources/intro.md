@@ -1,11 +1,25 @@
-# Reducing GPU kernel launch overhead in NGSolve using CUDA Graphs
+# GPU Implementations and CUDA Graph Acceleration of Krylov Solvers for Incompressible Navier–Stokes in NGSolve
 
-## NGSCuda on Supercomputer
+**Natalia Tylek — TU Wien**
 
-#### Idea
+**NGSolve User Meeting 2026, June 29 – July 1, Winterthur**
 
-NGSolve already supports GPU execution via ngscuda, but for matrix-free operators (like the convection operator) performance can be limited by kernel launch and synchronization overhead, especially when the same operator is applied repeatedly.
+---
 
-CUDA Graphs offer a way to:
-- capture a fixed sequence of GPU operations once,
-- replay it efficiently many times with lower CPU overhead.
+**This presentation:** two model problems demonstrating the CUDA WHILE graph solvers
+
+| | Problem | Solver |
+|---|---|---|
+| Part 1 | Poisson (symmetric SPD) | `DevCGSolver` | implemented, available publicly |
+| Part 2 | 3D convection (non-symmetric) | `DevTFQMRSolver` | implemented, not yet available publicly |
+
+---
+
+**Thesis context:** both solvers are needed in the IPCS Navier–Stokes timestepper
+
+| NS component | Symmetric | Constant | Solver | GPU solver |
+|---|---|---|---|---|
+| Convection | No | No | TFQMR | `DevTFQMRSolver`  |
+| Viscous / mass | Yes (SPD) | Yes | CG + BDDC | `DevCGSolver` |
+| Pressure proj. | Yes (SPD) | Yes | CG + H1AMG | `DevCGSolver` |
+| Full NS timestep | | | all 3 combined |  to be integrated |
