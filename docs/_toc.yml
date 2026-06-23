@@ -22,18 +22,16 @@ parts:
   - caption: Getting Started
     chapters:
     - file: installation.md
-  
+
 
   - caption: CUDA Graph 
     chapters:
     - file: profiling.md
-    - file: test_graph_capture.md
+    - file: implementation.md
+    - file: ngsolve_meeting_tutorial.md
 
   - caption: Results & Timings
     chapters:
     - file: timings.md
     - file: project.md
 
-  - caption: NGSolve User Meeting 2026
-    chapters:
-    - file: ngsolve_meeting_tutorial.md
