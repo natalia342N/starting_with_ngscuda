@@ -1,4 +1,6 @@
-# GPU Implementations and CUDA Graph Acceleration of Krylov Solvers for Incompressible Navier–Stokes in NGSolve
+# Linear Solvers on GPUs with NGSolve
+
+#### GPU Implementations and CUDA Graph Acceleration of Krylov Solvers for Incompressible Navier–Stokes in NGSolve
 
 **Natalia Tylek — TU Wien**
 
