@@ -1,8 +1,8 @@
 # Book settings
 # Learn more at https://jupyterbook.org/customize/config.html
 
-title: NGSolve on Device
-author: J. Schöberl 
+title: Linear Solvers on GPUs with NGSolve
+author: Natalia Tylek, TU Wien
 logo: pictures/TU_CSE_NGS.png
 copyright : "2026"  # Copyright year to be placed in the footer
 
@@ -10,7 +10,7 @@ copyright : "2026"  # Copyright year to be placed in the footer
 # Force re-execution of notebooks on each build.
 # See https://jupyterbook.org/content/execute.html
 execute:
-  execute_notebooks: force
+  execute_notebooks: off
   timeout: 300
 
 # Define the name of the latex output file for PDF builds
