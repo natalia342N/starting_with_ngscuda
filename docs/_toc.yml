@@ -24,7 +24,7 @@ parts:
     - file: installation.md
   
 
-  - caption: CUDA Graph Acceleration
+  - caption: CUDA Graph 
     chapters:
     - file: profiling.md
     - file: test_graph_capture.md
