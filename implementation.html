@@ -6,7 +6,9 @@
 
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Search - Linear Solvers on GPUs with NGSolve</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Implementation &#8212; Linear Solvers on GPUs with NGSolve</title>
   
   
   
@@ -55,12 +57,9 @@
     <script async="async" src="_static/sphinx-thebe.js?v=c100c467"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'search';</script>
-  <script src="_static/searchtools.js"></script>
-  <script src="_static/language_data.js"></script>
-  <script src="searchindex.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'implementation';</script>
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="#" />
+    <link rel="search" title="Search" href="search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -92,7 +91,7 @@
     <div class="search-button__overlay"></div>
     <div class="search-button__search-container">
 <form class="bd-search d-flex align-items-center"
-      action="#"
+      action="search.html"
       method="get">
   <i class="fa-solid fa-magnifying-glass"></i>
   <input type="search"
@@ -255,6 +254,54 @@
 
 
 
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/implementation.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
 <button onclick="toggleFullScreen()"
   class="btn btn-sm btn-fullscreen-button"
   title="Fullscreen mode"
@@ -288,7 +335,9 @@ document.write(`
   </button>
 `);
 </script>
-
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
 </div></div>
       
     </div>
@@ -297,42 +346,109 @@ document.write(`
 </div>
               
               
-  <div class="bd-search-container">
-    <h1>Search</h1>
-    <noscript>
-      <div class="admonition error">
-        <p class="admonition-title">Error</p>
-        <p>Please activate JavaScript to enable the search functionality.</p>
-      </div>
-    </noscript>
-    
-<form class="bd-search d-flex align-items-center"
-      action="#"
-      method="get">
-  <i class="fa-solid fa-magnifying-glass"></i>
-  <input type="search"
-         class="form-control"
-         name="q"
-         id="search-input"
-         placeholder="Search this book..."
-         aria-label="Search this book..."
-         autocomplete="off"
-         autocorrect="off"
-         autocapitalize="off"
-         spellcheck="false"/>
-  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form>
-    <div id="search-results"></div>
-  </div>
-  <script>
-    // Activate the search field on page load
-    let searchInput = document.querySelector("form.bd-search input");
-    if (searchInput) {
-        searchInput.focus();
-        searchInput.select();
-        console.log("[PST]: Set focus on search field.");
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Implementation</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-1-capture-the-iteration-body-as-a-cuda-graph">Step 1 — Capture the iteration body as a CUDA graph</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-2-wrap-in-a-cuda-while-conditional-node">Step 2 — Wrap in a CUDA WHILE conditional node</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#convergencecheckkernel">ConvergenceCheckKernel</a></li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="implementation">
+<h1>Implementation<a class="headerlink" href="#implementation" title="Link to this heading">#</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">DevCGSolver</span></code> implements the preconditioned CG method entirely on the GPU using
+a <strong>CUDA WHILE graph</strong> — a conditional graph node (CUDA ≥ 12.4) that keeps the
+convergence loop GPU-resident with zero per-iteration CPU involvement.</p>
+<p>The implementation has two steps.</p>
+<hr class="docutils" />
+<section id="step-1-capture-the-iteration-body-as-a-cuda-graph">
+<h2>Step 1 — Capture the iteration body as a CUDA graph<a class="headerlink" href="#step-1-capture-the-iteration-body-as-a-cuda-graph" title="Link to this heading">#</a></h2>
+<p><img alt="Timeline overview" src="_images/implementation_step1.png" /></p>
+<p>The sequence of CG iteration is captured once using CUDA stream capture:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">cudaStreamBeginCapture</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span><span class="w"> </span><span class="n">cudaStreamCaptureModeGlobal</span><span class="p">);</span>
+<span class="c1">// launch all iteration kernels on stream</span>
+<span class="n">cudaStreamEndCapture</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">bodyGraph</span><span class="p">);</span>
+<span class="n">cudaGraphInstantiate</span><span class="p">(</span><span class="o">&amp;</span><span class="n">bodyExec</span><span class="p">,</span><span class="w"> </span><span class="n">bodyGraph</span><span class="p">,</span><span class="w"> </span><span class="p">...);</span>
+</pre></div>
+</div>
+<p>The captured body graph replays the full iteration with minimal CPU overhead —
+no per-kernel <code class="docutils literal notranslate"><span class="pre">cudaLaunchKernel</span></code> call, just one <code class="docutils literal notranslate"><span class="pre">cudaGraphLaunch</span></code>.</p>
+</section>
+<hr class="docutils" />
+<section id="step-2-wrap-in-a-cuda-while-conditional-node">
+<h2>Step 2 — Wrap in a CUDA WHILE conditional node<a class="headerlink" href="#step-2-wrap-in-a-cuda-while-conditional-node" title="Link to this heading">#</a></h2>
+<p><img alt="Timeline overview" src="_images/implementation_step2.png" /></p>
+<p>A standard graph replays a <strong>fixed</strong> number of times. To loop until convergence,
+the body graph is embedded inside a <strong>CUDA WHILE node</strong>:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">cudaGraphCreate</span><span class="p">(</span><span class="o">&amp;</span><span class="n">whileGraph</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+<span class="n">cudaGraphConditionalHandleCreate</span><span class="p">(</span><span class="o">&amp;</span><span class="n">condHandle</span><span class="p">,</span><span class="w"> </span><span class="n">whileGraph</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="p">...);</span>
+<span class="n">cudaGraphAddNode</span><span class="p">(</span><span class="o">&amp;</span><span class="n">whileNode</span><span class="p">,</span><span class="w"> </span><span class="n">whileGraph</span><span class="p">,</span><span class="w"> </span><span class="n">condHandle</span><span class="p">,</span><span class="w"> </span><span class="p">...);</span>
+<span class="n">cudaGraphAddChildGraphNode</span><span class="p">(</span><span class="o">&amp;</span><span class="n">bodyNode</span><span class="p">,</span><span class="w"> </span><span class="n">whileGraph</span><span class="p">,</span><span class="w"> </span><span class="n">bodyGraph</span><span class="p">);</span>
+<span class="n">cudaGraphInstantiate</span><span class="p">(</span><span class="o">&amp;</span><span class="n">whileExec</span><span class="p">,</span><span class="w"> </span><span class="n">whileGraph</span><span class="p">,</span><span class="w"> </span><span class="p">...);</span>
+</pre></div>
+</div>
+<p>The WHILE node re-executes its body graph as long as a GPU-side flag is 1.</p>
+<section id="convergencecheckkernel">
+<h3>ConvergenceCheckKernel<a class="headerlink" href="#convergencecheckkernel" title="Link to this heading">#</a></h3>
+<p>At the end of each iteration body, <code class="docutils literal notranslate"><span class="pre">ConvergenceCheckKernel</span></code> computes ‖r‖ and
+sets the conditional flag directly on GPU:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">ConvergenceCheckKernel</span><span class="p">(</span>
+<span class="w">    </span><span class="n">cudaGraphConditionalHandle</span><span class="w"> </span><span class="n">handle</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="o">*</span><span class="w"> </span><span class="n">norm_sq</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">tol_sq</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">val</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">norm_sq</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">tol_sq</span><span class="p">)</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">    </span><span class="n">cudaGraphSetConditional</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span><span class="w"> </span><span class="n">val</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>No value is transferred to the CPU. The CPU launches the graph once and waits
+for it to finish — all convergence decisions happen on GPU.</p>
+</section>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./."
+        },
+        predefinedOutput: true
     }
-  </script>
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
 
               
               
@@ -347,6 +463,25 @@ document.write(`
             </div>
             
             
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-1-capture-the-iteration-body-as-a-cuda-graph">Step 1 — Capture the iteration body as a CUDA graph</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-2-wrap-in-a-cuda-while-conditional-node">Step 2 — Wrap in a CUDA WHILE conditional node</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#convergencecheckkernel">ConvergenceCheckKernel</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
               
             
           </div>
