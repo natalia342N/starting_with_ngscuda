@@ -1,4 +1,4 @@
-# Getting Started on Musica (EESSI / ASC 2025)
+# Musica (EESSI / ASC 2025)
 
 This page is optional and covers building NGSolve with CUDA support and running GPU jobs
 on the Musica supercomputer at TU Wien using the 2025 software stack.
