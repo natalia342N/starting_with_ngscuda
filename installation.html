@@ -60,7 +60,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'installation';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Profiling GPU Overhead with NVIDIA Nsight Systems" href="profiling.html" />
+    <link rel="next" title="Profiling with NVIDIA Nsight Systems" href="profiling.html" />
     <link rel="prev" title="Linear Solvers on GPUs" href="intro.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -185,7 +185,7 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">CUDA Graph Acceleration</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="profiling.html">Profiling GPU Overhead with NVIDIA Nsight Systems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="profiling.html">Profiling with NVIDIA Nsight Systems</a></li>
 <li class="toctree-l1"><a class="reference internal" href="test_graph_capture.html">CUDA Graph Acceleration for Krylov Solvers</a></li>
 
 
@@ -403,10 +403,10 @@ on the Musica supercomputer at TU Wien using the 2025 software stack.</p>
 <hr class="docutils" />
 <section id="build-ngsolve-with-cuda">
 <h2>2. Build NGSolve with CUDA<a class="headerlink" href="#build-ngsolve-with-cuda" title="Link to this heading">#</a></h2>
-<p>There are three build tiers depending on your situation:</p>
+<p>There are three build levels depending on your situation:</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
-<tr class="row-odd"><th class="head"><p>Tier</p></th>
+<tr class="row-odd"><th class="head"><p>Level</p></th>
 <th class="head"><p>Script</p></th>
 <th class="head"><p>When to use</p></th>
 <th class="head"><p>Time</p></th>
@@ -415,18 +415,18 @@ on the Musica supercomputer at TU Wien using the 2025 software stack.</p>
 <tbody>
 <tr class="row-even"><td><p><strong>Full</strong> (<code class="docutils literal notranslate"><span class="pre">USE_SUPERBUILD=ON</span></code>)</p></td>
 <td><p>see note below</p></td>
-<td><p>fresh install, Netgen not yet built</p></td>
-<td><p>~60–90 min</p></td>
+<td><p>new install, Netgen not yet built</p></td>
+<td><p></p></td>
 </tr>
 <tr class="row-odd"><td><p><strong>NGSolve-only</strong> (<code class="docutils literal notranslate"><span class="pre">USE_SUPERBUILD=OFF</span></code>)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">build_ngsolve.sh</span></code></p></td>
 <td><p>Netgen already installed, rebuilding NGSolve</p></td>
-<td><p>~20–30 min</p></td>
+<td><p></p></td>
 </tr>
 <tr class="row-even"><td><p><strong>ngscuda-only</strong></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">-j8</span></code> in build dir</p></td>
 <td><p>changed only <code class="docutils literal notranslate"><span class="pre">ngscuda/</span></code> source files</p></td>
-<td><p>~2–5 min</p></td>
+<td><p></p></td>
 </tr>
 </tbody>
 </table>
@@ -441,7 +441,7 @@ git<span class="w"> </span>clone<span class="w"> </span>--recurse-submodules<spa
 </pre></div>
 </div>
 <p>Save the following as <code class="docutils literal notranslate"><span class="pre">build_ngsolve.sh</span></code> and run it <strong>on the login node</strong>
-(no GPU needed for the build):</p>
+(GPU is optional for the build):</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/bin/sh</span>
 <span class="nb">set</span><span class="w"> </span>-e
 
@@ -453,7 +453,6 @@ ml<span class="w"> </span>load<span class="w"> </span>SciPy-bundle/2024.05-gfbf-
 ml<span class="w"> </span>load<span class="w"> </span>occt/7.9.1-GCCcore-14.2.0
 ml<span class="w"> </span>unload<span class="w"> </span>pybind11<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">true</span>
 
-<span class="c1"># Add CUDA static libs to linker search path</span>
 <span class="nv">CUDA_LIB</span><span class="o">=</span>/cvmfs/software.asc.ac.at/versions/2025.06/software/linux/x86_64/amd/zen4/software/CUDA/12.9.1/targets/x86_64-linux/lib
 <span class="nb">export</span><span class="w"> </span><span class="nv">LIBRARY_PATH</span><span class="o">=</span><span class="nv">$CUDA_LIB</span>:<span class="nv">$CUDA_LIB</span>/stubs:<span class="nv">$LIBRARY_PATH</span>
 
@@ -613,7 +612,7 @@ jupyter<span class="w"> </span>nbconvert<span class="w"> </span><span class="se"
 <hr class="docutils" />
 <section id="quick-test">
 <h2>5. Quick test<a class="headerlink" href="#quick-test" title="Link to this heading">#</a></h2>
-<p>To verify the build works before running anything large:</p>
+<p>To verify the build works before moving on:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># smoke_test.py</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">ngsolve</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">ngsolve</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
@@ -721,7 +720,7 @@ jupyter<span class="w"> </span>nbconvert<span class="w"> </span><span class="se"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Profiling GPU Overhead with NVIDIA Nsight Systems</p>
+        <p class="prev-next-title">Profiling with NVIDIA Nsight Systems</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

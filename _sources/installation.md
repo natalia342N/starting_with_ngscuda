@@ -20,13 +20,13 @@ ssh-keygen -R musica.vie.asc.ac.at
 
 ## 2. Build NGSolve with CUDA
 
-There are three build tiers depending on your situation:
+There are three build levels depending on your situation:
 
-| Tier | Script | When to use | Time |
+| Level | Script | When to use | Time |
 |---|---|---|---|
-| **Full** (`USE_SUPERBUILD=ON`) | see note below | fresh install, Netgen not yet built | ~60–90 min |
-| **NGSolve-only** (`USE_SUPERBUILD=OFF`) | `build_ngsolve.sh` | Netgen already installed, rebuilding NGSolve | ~20–30 min |
-| **ngscuda-only** | `make -j8` in build dir | changed only `ngscuda/` source files | ~2–5 min |
+| **Full** (`USE_SUPERBUILD=ON`) | see note below | new install, Netgen not yet built | 
+| **NGSolve-only** (`USE_SUPERBUILD=OFF`) | `build_ngsolve.sh` | Netgen already installed, rebuilding NGSolve | 
+| **ngscuda-only** | `make -j8` in build dir | changed only `ngscuda/` source files |
 
 The script below is **NGSolve-only** — the most common case when iterating on ngscuda.
 It assumes Netgen is already installed at `${WORKING_DIR}/install`.
@@ -42,7 +42,7 @@ git clone --recurse-submodules https://github.com/NGSolve/ngsolve.git src/ngsolv
 ```
 
 Save the following as `build_ngsolve.sh` and run it **on the login node**
-(no GPU needed for the build):
+(GPU is optional for the build):
 
 ```bash
 #!/bin/sh
@@ -56,7 +56,6 @@ ml load SciPy-bundle/2024.05-gfbf-2024a
 ml load occt/7.9.1-GCCcore-14.2.0
 ml unload pybind11 || true
 
-# Add CUDA static libs to linker search path
 CUDA_LIB=/cvmfs/software.asc.ac.at/versions/2025.06/software/linux/x86_64/amd/zen4/software/CUDA/12.9.1/targets/x86_64-linux/lib
 export LIBRARY_PATH=$CUDA_LIB:$CUDA_LIB/stubs:$LIBRARY_PATH
 
@@ -224,7 +223,7 @@ jupyter nbconvert \
 
 ## 5. Quick test
 
-To verify the build works before running anything large:
+To verify the build works before moving on:
 
 ```python
 # smoke_test.py

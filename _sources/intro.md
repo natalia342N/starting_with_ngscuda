@@ -25,4 +25,4 @@
 | Full NS timestep | | | all 3 combined |  to be integrated |
 
 
-**GPU Implementations and CUDA Graph Acceleration of Krylov Solvers for Incompressible Navier–Stokes in NGSolve**
+*GPU Implementations and CUDA Graph Acceleration of Krylov Solvers for Incompressible Navier–Stokes in NGSolve*
