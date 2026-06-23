@@ -1,6 +1,4 @@
-# Linear Solvers on GPUs with NGSolve
-
-#### GPU Implementations and CUDA Graph Acceleration of Krylov Solvers for Incompressible Navier–Stokes in NGSolve
+# Linear Solvers on GPUs
 
 **Natalia Tylek — TU Wien**
 
@@ -25,3 +23,6 @@
 | Viscous / mass | Yes (SPD) | Yes | CG + BDDC | `DevCGSolver` |
 | Pressure proj. | Yes (SPD) | Yes | CG + H1AMG | `DevCGSolver` |
 | Full NS timestep | | | all 3 combined |  to be integrated |
+
+
+**GPU Implementations and CUDA Graph Acceleration of Krylov Solvers for Incompressible Navier–Stokes in NGSolve**
